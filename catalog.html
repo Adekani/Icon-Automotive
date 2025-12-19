@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory | Icon Automotive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @font-face { font-family: 'Orenburg'; src: url('Orenburg.ttf') format('truetype'); }
+        :root { --brand-red: #E60002; --brand-dark: #0a0a0a; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--brand-dark); color: #fff; }
+        .font-heading { font-family: 'Orenburg', serif; }
+        
+        /* Custom Scrollbar for Filters */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Input styling */
+        .filter-input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            transition: all 0.3s;
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 0.125rem;
+            font-size: 0.875rem;
+        }
+        .filter-input:focus {
+            outline: none;
+            border-color: #E60002;
+            background: rgba(255,255,255,0.1);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body class="flex flex-col min-h-screen">
+    <div id="header-container"></div>
+
+    <div class="pt-28 pb-8 px-6 border-b border-white/10 flex justify-between items-end">
+        <div>
+            <h1 class="text-4xl font-heading">INVENTORY</h1>
+            <p class="text-gray-400 text-sm mt-2"><span id="count">0</span> Vehicles Available</p>
+        </div>
+        <!-- Mobile Filter Toggle -->
+        <button id="filter-toggle" class="md:hidden px-4 py-2 border border-white/20 rounded-full text-sm hover:border-[#E60002] transition-colors">
+            <i class="fas fa-sliders-h mr-2"></i> Filters
+        </button>
+    </div>
+
+    <div class="flex flex-1 relative">
+        
+        <!-- SIDEBAR FILTERS (Desktop + Mobile Drawer) -->
+        <aside id="filter-sidebar" class="fixed inset-y-0 left-0 z-40 w-80 bg-[#111] transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 border-r border-white/5 overflow-y-auto pt-24 md:pt-8 px-6 pb-10 shadow-2xl md:shadow-none">
+            
+            <div class="flex justify-between items-center md:hidden mb-6">
+                <h3 class="font-bold text-lg">Filters</h3>
+                <button id="close-filter" class="text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            </div>
+
+            <!-- Price Filter -->
+            <div class="mb-8 border-b border-white/5 pb-8">
+                <h4 class="text-xs uppercase tracking-widest text-gray-500 mb-4 font-bold">Price (₦)</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] text-gray-600 mb-1 block">Min Price</label>
+                        <input type="number" id="price-min" placeholder="700,000" class="filter-input" oninput="applyFilters()">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-600 mb-1 block">Max Price</label>
+                        <input type="number" id="price-max" placeholder="1,000,000,000" class="filter-input" oninput="applyFilters()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Year Filter -->
+            <div class="mb-8 border-b border-white/5 pb-8">
+                <h4 class="text-xs uppercase tracking-widest text-gray-500 mb-4 font-bold">Year</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] text-gray-600 mb-1 block">From</label>
+                        <input type="number" id="year-min" placeholder="2015" class="filter-input" oninput="applyFilters()">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-600 mb-1 block">To</label>
+                        <input type="number" id="year-max" placeholder="2025" class="filter-input" oninput="applyFilters()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brand Filter -->
+            <div class="mb-8 border-b border-white/5 pb-8">
+                <h4 class="text-xs uppercase tracking-widest text-gray-500 mb-4 font-bold">Brand</h4>
+                <div id="brand-filters" class="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scroll">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- Location Filter -->
+            <div class="mb-8 border-b border-white/5 pb-8">
+                <h4 class="text-xs uppercase tracking-widest text-gray-500 mb-4 font-bold">Location</h4>
+                <div id="location-filters" class="space-y-2">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- Usage Filter -->
+            <div class="mb-8">
+                <h4 class="text-xs uppercase tracking-widest text-gray-500 mb-4 font-bold">Condition</h4>
+                <div class="space-y-2">
+                    <label class="flex items-center space-x-3 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                        <input type="checkbox" class="filter-chk accent-[#E60002] w-4 h-4 rounded-sm bg-white/10 border-white/20" value="Nigerian Used" data-type="usage">
+                        <span>Nigerian Used</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                        <input type="checkbox" class="filter-chk accent-[#E60002] w-4 h-4 rounded-sm bg-white/10 border-white/20" value="Foreign Used" data-type="usage">
+                        <span>Foreign Used</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                        <input type="checkbox" class="filter-chk accent-[#E60002] w-4 h-4 rounded-sm bg-white/10 border-white/20" value="Brand New" data-type="usage">
+                        <span>Brand New</span>
+                    </label>
+                </div>
+            </div>
+
+            <button onclick="resetFilters()" class="w-full py-3 mt-2 text-gray-500 hover:text-white hover:bg-white/5 text-xs tracking-wider border border-transparent hover:border-white/10 transition-all rounded-sm">RESET ALL FILTERS</button>
+        </aside>
+
+        <!-- Overlay for mobile -->
+        <div id="filter-overlay" class="fixed inset-0 bg-black/80 z-30 hidden md:hidden backdrop-blur-sm"></div>
+
+        <!-- CAR GRID -->
+        <main class="flex-1 p-6 bg-[#0a0a0a]">
+            <div id="cars-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Cars Injected Here -->
+            </div>
+            
+            <div id="no-results" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                <i class="fas fa-search text-6xl text-gray-800 mb-4"></i>
+                <p class="text-gray-400 text-xl font-heading mb-2">No vehicles found.</p>
+                <p class="text-gray-600 text-sm mb-6">Try adjusting your price range or filters.</p>
+                <button onclick="resetFilters()" class="text-[#E60002] border-b border-[#E60002] pb-1 hover:text-white hover:border-white transition-colors">Clear All Filters</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <script>
+        let allCars = [];
+        let filters = { 
+            brands: [], 
+            usage: [],
+            location: [],
+            priceMin: null,
+            priceMax: null,
+            yearMin: null,
+            yearMax: null
+        };
+
+        // DOM Elements
+        const grid = document.getElementById('cars-grid');
+        const countSpan = document.getElementById('count');
+        const sidebar = document.getElementById('filter-sidebar');
+        const overlay = document.getElementById('filter-overlay');
+
+        // --- INIT ---
+        async function initCatalog() {
+            try {
+                // 1. Load Components
+                const hRes = await fetch('header.html');
+                if(hRes.ok) document.getElementById('header-container').innerHTML = await hRes.text();
+                const fRes = await fetch('footer.html');
+                if(fRes.ok) document.getElementById('footer-container').innerHTML = await fRes.text();
+
+                // 2. Initialize Header (FIX FOR HEADER ISSUE)
+                initHeaderLogic();
+
+                // 3. Load Cars
+                const res = await fetch('cars.json');
+                allCars = await res.json();
+                
+                setupDynamicFilters(allCars);
+                renderCars(allCars);
+            } catch (e) { console.error("Error loading catalog:", e); }
+        }
+
+        // --- HEADER LOGIC (Call this after injecting header.html) ---
+        function initHeaderLogic() {
+            const btn = document.getElementById('mobile-menu-btn');
+            const menu = document.getElementById('mobile-menu');
+            
+            if (btn && menu) {
+                // Remove old listeners if any (simple way is cloning, but direct assign is fine here)
+                btn.onclick = function() {
+                    menu.classList.toggle('hidden');
+                    menu.classList.toggle('flex');
+                    const icon = btn.querySelector('i');
+                    if(menu.classList.contains('hidden')) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    } else {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    }
+                };
+            }
+        }
+
+        // --- FILTER SETUP ---
+        function setupDynamicFilters(cars) {
+            // Brands
+            const brands = [...new Set(cars.map(c => c.brand))].sort();
+            const brandContainer = document.getElementById('brand-filters');
+            brandContainer.innerHTML = brands.map(b => `
+                <label class="flex items-center space-x-3 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                    <input type="checkbox" class="filter-chk accent-[#E60002] w-4 h-4 rounded-sm bg-white/10 border-white/20" value="${b}" data-type="brand">
+                    <span>${b}</span>
+                </label>
+            `).join('');
+
+            // Locations
+            const locations = [...new Set(cars.map(c => c.location))].sort();
+            const locContainer = document.getElementById('location-filters');
+            locContainer.innerHTML = locations.map(l => `
+                 <label class="flex items-center space-x-3 cursor-pointer text-sm text-gray-300 hover:text-white transition-colors">
+                    <input type="checkbox" class="filter-chk accent-[#E60002] w-4 h-4 rounded-sm bg-white/10 border-white/20" value="${l}" data-type="location">
+                    <span>${l}</span>
+                </label>
+            `).join('');
+
+            // Attach Checkbox Listeners
+            document.querySelectorAll('.filter-chk').forEach(chk => {
+                chk.addEventListener('change', handleCheckboxChange);
+            });
+        }
+
+        function handleCheckboxChange(e) {
+            const val = e.target.value;
+            const type = e.target.dataset.type;
+            const isChecked = e.target.checked;
+
+            if (type === 'brand') {
+                if (isChecked) filters.brands.push(val);
+                else filters.brands = filters.brands.filter(item => item !== val);
+            } else if (type === 'usage') {
+                if (isChecked) filters.usage.push(val);
+                else filters.usage = filters.usage.filter(item => item !== val);
+            } else if (type === 'location') {
+                if (isChecked) filters.location.push(val);
+                else filters.location = filters.location.filter(item => item !== val);
+            }
+            applyFilters();
+        }
+
+        function applyFilters() {
+            // Get Input Values
+            filters.priceMin = document.getElementById('price-min').value ? Number(document.getElementById('price-min').value) : null;
+            filters.priceMax = document.getElementById('price-max').value ? Number(document.getElementById('price-max').value) : null;
+            filters.yearMin = document.getElementById('year-min').value ? Number(document.getElementById('year-min').value) : null;
+            filters.yearMax = document.getElementById('year-max').value ? Number(document.getElementById('year-max').value) : null;
+
+            let filtered = allCars;
+
+            // Brand
+            if (filters.brands.length > 0) {
+                filtered = filtered.filter(c => filters.brands.includes(c.brand));
+            }
+            // Usage
+            if (filters.usage.length > 0) {
+                filtered = filtered.filter(c => filters.usage.includes(c.usageState));
+            }
+            // Location
+            if (filters.location.length > 0) {
+                filtered = filtered.filter(c => filters.location.includes(c.location));
+            }
+            // Price
+            if (filters.priceMin !== null) filtered = filtered.filter(c => c.price >= filters.priceMin);
+            if (filters.priceMax !== null) filtered = filtered.filter(c => c.price <= filters.priceMax);
+            
+            // Year
+            if (filters.yearMin !== null) filtered = filtered.filter(c => c.year >= filters.yearMin);
+            if (filters.yearMax !== null) filtered = filtered.filter(c => c.year <= filters.yearMax);
+
+            renderCars(filtered);
+        }
+
+        function resetFilters() {
+            // Reset State
+            filters = { brands: [], usage: [], location: [], priceMin: null, priceMax: null, yearMin: null, yearMax: null };
+            
+            // Reset UI
+            document.querySelectorAll('.filter-chk').forEach(c => c.checked = false);
+            document.getElementById('price-min').value = '';
+            document.getElementById('price-max').value = '';
+            document.getElementById('year-min').value = '';
+            document.getElementById('year-max').value = '';
+            
+            renderCars(allCars);
+        }
+
+        function renderCars(cars) {
+            countSpan.innerText = cars.length;
+            grid.innerHTML = '';
+            
+            if (cars.length === 0) {
+                document.getElementById('no-results').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('no-results').classList.add('hidden');
+            }
+
+            cars.forEach(car => {
+                const card = `
+                    <div class="group bg-[#111] rounded-sm overflow-hidden border border-white/5 hover:border-[#E60002]/50 transition-all duration-300 shadow-lg hover:shadow-red-900/10 cursor-pointer" onclick="window.location.href='car.html?id=${car.id}'">
+                        <div class="aspect-[16/10] overflow-hidden relative">
+                            <img src="${car.images[0]}" alt="${car.brand}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                            <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black to-transparent"></div>
+                            <div class="absolute bottom-3 left-3 flex gap-2">
+                                <span class="bg-white/10 backdrop-blur-md text-[10px] uppercase px-2 py-1 rounded-sm border border-white/10 text-white">${car.year}</span>
+                                <span class="bg-[#E60002] text-white text-[10px] uppercase px-2 py-1 rounded-sm">${car.usageState}</span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-heading text-white">${car.brand} ${car.model}</h3>
+                            </div>
+                            <div class="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
+                                <p class="text-[#E60002] font-semibold">₦${car.price.toLocaleString()}</p>
+                                <p class="text-xs text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> ${car.location}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+
+        // Sidebar Logic
+        const toggleSidebar = () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        };
+
+        document.getElementById('filter-toggle').addEventListener('click', toggleSidebar);
+        document.getElementById('close-filter').addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        window.addEventListener('load', initCatalog);
+    </script>
+</body>
+</html>

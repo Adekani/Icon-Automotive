@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Details | Icon Automotive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @font-face { font-family: 'Orenburg'; src: url('Orenburg.ttf') format('truetype'); }
+        :root { --brand-red: #E60002; --brand-dark: #0a0a0a; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--brand-dark); color: #fff; }
+        .font-heading { font-family: 'Orenburg', serif; }
+        
+        /* Gallery Styles */
+        .gallery-thumbs::-webkit-scrollbar { height: 4px; }
+        .gallery-thumbs::-webkit-scrollbar-thumb { background: #E60002; }
+        .gallery-thumbs::-webkit-scrollbar-track { background: #333; }
+        
+        .active-thumb { border-color: #E60002; opacity: 1; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body class="pb-24">
+    <div id="header-container"></div>
+
+    <div id="loader" class="fixed inset-0 bg-black flex items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E60002]"></div>
+    </div>
+
+    <!-- MAIN CAR CONTAINER -->
+    <main id="car-content" class="opacity-0 transition-opacity duration-1000 pt-20 max-w-7xl mx-auto px-0 md:px-6 grid lg:grid-cols-3 gap-8">
+        
+        <!-- Left Column: Gallery (Span 2) -->
+        <div class="lg:col-span-2">
+            <!-- Main Display -->
+            <div class="relative w-full aspect-video bg-[#111] group overflow-hidden md:rounded-sm">
+                <img id="main-image" src="" alt="Car Main" class="w-full h-full object-cover transition-transform duration-500 cursor-zoom-in" onclick="expandImage()">
+                <div class="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/50 to-transparent"></div>
+            </div>
+
+            <!-- Thumbs -->
+            <div id="thumbs-container" class="flex gap-3 overflow-x-auto p-4 md:px-0 gallery-thumbs mt-2">
+                <!-- Injected JS -->
+            </div>
+
+            <!-- Description -->
+            <div class="p-6 md:px-0 mt-8">
+                <h2 class="text-2xl font-heading mb-4 text-[#E60002]">Vehicle Overview</h2>
+                <p id="car-bio" class="text-gray-300 leading-relaxed font-light"></p>
+            </div>
+        </div>
+
+        <!-- Right Column: Details & Sticky CTA -->
+        <div class="px-6 md:px-0 lg:pt-0">
+            <div class="sticky top-24 bg-[#111] p-8 border border-white/5 rounded-sm shadow-2xl">
+                <div class="mb-6">
+                    <p class="text-gray-500 text-sm tracking-widest uppercase" id="car-subtitle">Loading...</p>
+                    <h1 class="text-3xl md:text-4xl font-heading text-white mt-1" id="car-title">Loading...</h1>
+                    <p class="text-3xl text-[#E60002] font-semibold mt-4" id="car-price">...</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-y-4 gap-x-2 text-sm text-gray-400 border-y border-white/10 py-6 mb-8">
+                    <div><span class="block text-xs text-gray-600 uppercase">Year</span> <span id="spec-year" class="text-white"></span></div>
+                    <div><span class="block text-xs text-gray-600 uppercase">Mileage</span> <span id="spec-mileage" class="text-white">N/A</span></div>
+                    <div><span class="block text-xs text-gray-600 uppercase">Condition</span> <span id="spec-condition" class="text-white"></span></div>
+                    <div><span class="block text-xs text-gray-600 uppercase">Location</span> <span id="spec-location" class="text-white"></span></div>
+                </div>
+
+                <button id="whatsapp-btn" class="w-full py-4 bg-[#E60002] hover:bg-red-700 text-white font-bold tracking-widest transition-all duration-300 shadow-lg shadow-red-900/20 flex items-center justify-center gap-2 rounded-sm">
+                    <i class="fab fa-whatsapp text-xl"></i> INQUIRE NOW
+                </button>
+                <p class="text-center text-xs text-gray-600 mt-4">ID: <span id="car-id-display"></span></p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Fullscreen Modal -->
+    <div id="image-modal" class="fixed inset-0 bg-black/95 z-[100] hidden flex items-center justify-center" onclick="this.classList.add('hidden')">
+        <img id="modal-img" src="" class="max-w-full max-h-screen object-contain p-4">
+    </div>
+
+    <div id="footer-container"></div>
+
+    <script>
+        // Data Logic
+        
+        // --- NEW: Header Logic Function ---
+        function initHeaderLogic() {
+            const btn = document.getElementById('mobile-menu-btn');
+            const menu = document.getElementById('mobile-menu');
+            
+            if (btn && menu) {
+                btn.onclick = function() {
+                    menu.classList.toggle('hidden');
+                    menu.classList.toggle('flex');
+                    
+                    // Icon Toggle
+                    const icon = btn.querySelector('i');
+                    if(menu.classList.contains('hidden')) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    } else {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    }
+                };
+            }
+        }
+        async function initPage() {
+            try {
+                // Components
+                const headerRes = await fetch('header.html');
+                if(headerRes.ok) {
+                      document.getElementById('header-container').innerHTML = await headerRes.text();
+                      initHeaderLogic(); // <--- ADD THIS LINE HERE
+                }
+                const fRes = await fetch('footer.html');
+                if(fRes.ok) document.getElementById('footer-container').innerHTML = await fRes.text();
+
+                // Get ID
+                const urlParams = new URLSearchParams(window.location.search);
+                const carId = urlParams.get('id');
+
+                if (!carId) {
+                    window.location.href = 'catalog.html';
+                    return;
+                }
+
+                // Fetch Car
+                const res = await fetch('cars.json');
+                const cars = await res.json();
+                const car = cars.find(c => c.id == carId);
+
+                if (car) renderCar(car);
+                else alert('Car not found');
+
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('car-content').classList.remove('opacity-0');
+
+            } catch (e) { console.error(e); }
+        }
+
+        function renderCar(car) {
+            // Text
+            document.getElementById('car-title').innerText = `${car.brand} ${car.model}`;
+            document.getElementById('car-subtitle').innerText = car.faceliftYear ? `FACELIFTED TO ${car.faceliftYear}` : 'STOCK';
+            document.getElementById('car-price').innerText = `₦${car.price.toLocaleString()}`;
+            document.getElementById('car-bio').innerText = car.bio;
+            document.getElementById('car-id-display').innerText = car.id;
+
+            // Specs
+            document.getElementById('spec-year').innerText = car.year;
+            document.getElementById('spec-condition').innerText = car.usageState;
+            document.getElementById('spec-location').innerText = car.location;
+
+            // Images
+            const mainImg = document.getElementById('main-image');
+            const thumbs = document.getElementById('thumbs-container');
+            
+            mainImg.src = car.images[0];
+
+            car.images.forEach((img, idx) => {
+                const thumb = document.createElement('img');
+                thumb.src = img;
+                thumb.className = `w-24 h-16 object-cover cursor-pointer border-2 ${idx === 0 ? 'border-[#E60002]' : 'border-transparent'} hover:border-gray-500 transition-all rounded-sm`;
+                thumb.onclick = () => {
+                    mainImg.src = img;
+                    mainImg.classList.add('animate-pulse');
+                    setTimeout(() => mainImg.classList.remove('animate-pulse'), 300);
+                    // Update borders
+                    Array.from(thumbs.children).forEach(t => t.classList.replace('border-[#E60002]', 'border-transparent'));
+                    thumb.classList.replace('border-transparent', 'border-[#E60002]');
+                };
+                thumbs.appendChild(thumb);
+            });
+
+            // WhatsApp
+            const btn = document.getElementById('whatsapp-btn');
+            const msg = `Good day Icon Automotive, I am interested in:\nBrand: ${car.brand}\nModel: ${car.model}\nYear: ${car.year}\nID: ${car.id}${car.faceliftYear ? '\nFacelifted: Yes' : ''}`;
+            btn.onclick = () => window.open(`https://wa.me/2347085060716?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function expandImage() {
+            const src = document.getElementById('main-image').src;
+            document.getElementById('modal-img').src = src;
+            document.getElementById('image-modal').classList.remove('hidden');
+        }
+
+        window.addEventListener('load', initPage);
+    </script>
+</body>
+</html>

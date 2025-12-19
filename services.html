@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services | Icon Automotive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @font-face { font-family: 'Orenburg'; src: url('Orenburg.ttf') format('truetype'); }
+        :root { --brand-red: #E60002; --brand-dark: #0a0a0a; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--brand-dark); color: #fff; }
+        .font-heading { font-family: 'Orenburg', serif; }
+        .service-card:hover .service-icon { transform: scale(1.1) rotate(5deg); color: var(--brand-red); }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="header-container"></div>
+
+    <div class="py-32 px-6 text-center">
+        <h1 class="text-5xl font-heading mb-4">OUR SERVICES</h1>
+        <p class="text-gray-400">Intelligent automotive solutions tailored to your needs.</p>
+    </div>
+
+    <section class="max-w-6xl mx-auto px-6 pb-32 grid md:grid-cols-2 gap-8">
+        
+        <!-- Service 1 -->
+        <div class="service-card group p-8 bg-[#111] border border-white/5 hover:border-[#E60002] transition-all duration-300 rounded-sm relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-[#E60002] opacity-5 rounded-bl-full transition-opacity group-hover:opacity-10"></div>
+            <i class="fas fa-car-side text-4xl text-gray-600 mb-6 service-icon transition-transform duration-300"></i>
+            <h3 class="text-2xl font-heading mb-3">Vehicle Purchase</h3>
+            <p class="text-gray-400 mb-8 text-sm leading-relaxed">
+                Expert guidance through your buying journey. We verify every car to ensure you get luxury without liability.
+            </p>
+            <button onclick="contactService('buying')" class="text-sm font-bold tracking-widest text-[#E60002] border-b border-[#E60002] pb-1">
+                START PURCHASE
+            </button>
+        </div>
+
+        <!-- Service 2 -->
+        <div class="service-card group p-8 bg-[#111] border border-white/5 hover:border-[#E60002] transition-all duration-300 rounded-sm relative overflow-hidden">
+             <div class="absolute top-0 right-0 w-32 h-32 bg-[#E60002] opacity-5 rounded-bl-full transition-opacity group-hover:opacity-10"></div>
+            <i class="fas fa-money-bill-wave text-4xl text-gray-600 mb-6 service-icon transition-transform duration-300"></i>
+            <h3 class="text-2xl font-heading mb-3">Sell Your Car</h3>
+            <p class="text-gray-400 mb-8 text-sm leading-relaxed">
+                Consignment services that get you the best market value while we handle the negotiations and paperwork.
+            </p>
+            <button onclick="contactService('selling')" class="text-sm font-bold tracking-widest text-[#E60002] border-b border-[#E60002] pb-1">
+                SELL NOW
+            </button>
+        </div>
+
+        <!-- Service 3 -->
+        <div class="service-card group p-8 bg-[#111] border border-white/5 hover:border-[#E60002] transition-all duration-300 rounded-sm relative overflow-hidden">
+             <div class="absolute top-0 right-0 w-32 h-32 bg-[#E60002] opacity-5 rounded-bl-full transition-opacity group-hover:opacity-10"></div>
+            <i class="fas fa-building text-4xl text-gray-600 mb-6 service-icon transition-transform duration-300"></i>
+            <h3 class="text-2xl font-heading mb-3">Company Purchases</h3>
+            <p class="text-gray-400 mb-8 text-sm leading-relaxed">
+                Streamlined procurement for executive rides and company vehicles.
+            </p>
+            <button onclick="contactService('company')" class="text-sm font-bold tracking-widest text-[#E60002] border-b border-[#E60002] pb-1">
+                INQUIRE
+            </button>
+        </div>
+
+        <!-- Service 4 -->
+        <div class="service-card group p-8 bg-[#111] border border-white/5 hover:border-[#E60002] transition-all duration-300 rounded-sm relative overflow-hidden">
+             <div class="absolute top-0 right-0 w-32 h-32 bg-[#E60002] opacity-5 rounded-bl-full transition-opacity group-hover:opacity-10"></div>
+            <i class="fas fa-network-wired text-4xl text-gray-600 mb-6 service-icon transition-transform duration-300"></i>
+            <h3 class="text-2xl font-heading mb-3">Fleet Management</h3>
+            <p class="text-gray-400 mb-8 text-sm leading-relaxed">
+                Comprehensive management solutions to keep your business moving efficiently.
+            </p>
+            <button onclick="contactService('fleet')" class="text-sm font-bold tracking-widest text-[#E60002] border-b border-[#E60002] pb-1">
+                MANAGE FLEET
+            </button>
+        </div>
+
+    </section>
+
+    <div id="footer-container"></div>
+    
+    <script>
+        // WhatsApp Logic
+        function contactService(type) {
+            const phone = "2347085060716";
+            let msg = "";
+            
+            switch(type) {
+                case 'buying': msg = "Good day Icon Automotive, I am interested in purchasing a vehicle."; break;
+                case 'selling': msg = "Good day Icon Automotive, I am interested in having my car sold."; break;
+                case 'company': msg = "Good day Icon Automotive, I am interested in company car purchases."; break;
+                case 'fleet': msg = "Good day Icon Automotive, I want to discuss Fleet Management."; break;
+            }
+
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+        }
+        // --- NEW: Header Logic Function ---
+        function initHeaderLogic() {
+            const btn = document.getElementById('mobile-menu-btn');
+            const menu = document.getElementById('mobile-menu');
+            
+            if (btn && menu) {
+                btn.onclick = function() {
+                    menu.classList.toggle('hidden');
+                    menu.classList.toggle('flex');
+                    
+                    // Icon Toggle
+                    const icon = btn.querySelector('i');
+                    if(menu.classList.contains('hidden')) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    } else {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    }
+                };
+            }
+        }
+        
+        async function loadComponents() {
+            try {
+                const headerRes = await fetch('header.html');
+                const footerRes = await fetch('footer.html');
+                if(headerRes.ok) {
+                      document.getElementById('header-container').innerHTML = await headerRes.text();
+                      initHeaderLogic(); // <--- ADD THIS LINE HERE
+                }
+                if(footerRes.ok) document.getElementById('footer-container').innerHTML = await footerRes.text();
+            } catch (e) { console.warn("Use local server"); }
+        }
+        loadComponents();
+    </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+[
+    {
+        "id": "1001",
+        "brand": "Mercedes-Benz",
+        "model": "GLE 450 Coupe",
+        "year": 2021,
+        "price": 85000000,
+        "location": "Ibadan",
+        "usageState": "Foreign Used",
+        "faceliftYear": null,
+        "images": [
+            "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=2070&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?q=80&w=2064&auto=format&fit=crop"
+        ],
+        "bio": "Experience the pinnacle of luxury SUVs. This GLE 450 combines AMG styling with executive comfort. Features include a panoramic roof, Burmester sound system, and 360-degree cameras. Immaculate condition."
+    },
+    {
+        "id": "1002",
+        "brand": "Mercedes",
+        "model": "C300" ,
+        "year": 2016,
+        "price": 45000000,
+        "location": "Ibadan",
+        "usageState": "Foreign Used",
+        "faceliftYear": null,
+        "images": [
+            "car_pics/IMG-20251219-WA0003.jpg",
+            "car_pics/IMG-20251219-WA0003.jpg"
+        ],
+        "bio": "Rugged reliability meets modern aesthetics. This 2018 Prado has been professionally facelifted to the 2022 model year kit, giving you the latest look at a fraction of the cost. Maintained by authorized dealers."
+    },
+    {
+        "id": "1003",
+        "brand": "Range Rover",
+        "model": "Vogue Autobiography",
+        "year": 2019,
+        "price": 95000000,
+        "location": "Abuja",
+        "usageState": "Foreign Used",
+        "faceliftYear": null,
+        "images": [
+            "https://images.unsplash.com/photo-1606220838315-056192d5e927?q=80&w=2070&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070&auto=format&fit=crop"
+        ],
+        "bio": "The ultimate status symbol. Long Wheel Base (LWB) for maximum rear legroom. Massage seats, refrigerator, and rear entertainment screens included. The engine purrs like a kitten."
+    },
+    {
+        "id": "1004",
+        "brand": "Mercedes-Benz",
+        "model": "G63 AMG",
+        "year": 2022,
+        "price": 250000000,
+        "location": "Lagos",
+        "usageState": "Brand New",
+        "faceliftYear": null,
+        "images": [
+            "https://images.unsplash.com/photo-1520031441872-265e4ff70366?q=80&w=2000&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?q=80&w=2070&auto=format&fit=crop"
+        ],
+        "bio": "Zero mileage. Night Package included. The King of the Road. This G63 AMG features the manufaktur matte black paint option and diamond stitched interior. Serious buyers only."
+    }
+]

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact | Icon Automotive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @font-face { font-family: 'Orenburg'; src: url('Orenburg.ttf') format('truetype'); }
+        :root { --brand-red: #E60002; --brand-dark: #0a0a0a; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--brand-dark); color: #fff; }
+        .font-heading { font-family: 'Orenburg', serif; }
+        input, textarea, select {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #E60002;
+            background: rgba(255,255,255,0.1);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="header-container"></div>
+
+    <section class="pt-32 pb-20 px-6 max-w-4xl mx-auto">
+        <h1 class="text-5xl font-heading text-center mb-12">GET IN TOUCH</h1>
+
+        <div class="grid md:grid-cols-2 gap-12 bg-[#111] p-8 md:p-12 border border-white/5 shadow-2xl rounded-sm">
+            
+            <!-- Contact Info -->
+            <div class="space-y-8">
+                <div>
+                    <h3 class="text-[#E60002] font-bold tracking-widest text-sm mb-2">PHONE</h3>
+                    <p class="text-xl">+234 708 506 0716</p>
+                    <p class="text-xl">+234 904 560 0891</p>
+                </div>
+                <div>
+                    <h3 class="text-[#E60002] font-bold tracking-widest text-sm mb-2">LOCATION</h3>
+                    <p class="text-xl">Ibadan, Oyo State,<br>Nigeria</p>
+                </div>
+                <div>
+                    <h3 class="text-[#E60002] font-bold tracking-widest text-sm mb-2">SOCIAL</h3>
+                    <div class="flex gap-4 text-2xl">
+                        <a href="https://www.instagram.com/iconautomotivecars?igsh=Y25uMHFiOWswcXc4" class="hover:text-[#E60002] transition-colors"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.facebook.com/share/1TTGp4m1KE/" class="hover:text-[#E60002] transition-colors"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.tiktok.com/@ionautoworld?_r=1&_t=ZS-92LlPLERRIH" class="hover:text-[#E60002] transition-colors"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form onsubmit="submitToWhatsapp(event)" class="space-y-6">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-2 uppercase">Full Name</label>
+                    <input type="text" id="name" required class="w-full p-3 rounded-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-2 uppercase">Inquiry Type</label>
+                    <select id="type" class="w-full p-3 rounded-sm">
+                        <option value="General Inquiry">General Inquiry</option>
+                        <option value="Buying a Car">Buying a Car</option>
+                        <option value="Selling a Car">Selling a Car</option>
+                        <option value="Fleet Management">Fleet Management</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-2 uppercase">Message</label>
+                    <textarea id="message" rows="4" required class="w-full p-3 rounded-sm"></textarea>
+                </div>
+                <button type="submit" class="w-full py-4 bg-white text-black font-bold tracking-widest hover:bg-[#E60002] hover:text-white transition-all duration-300 rounded-sm">
+                    SEND VIA WHATSAPP
+                </button>
+            </form>
+
+        </div>
+    </section>
+
+    <div id="footer-container"></div>
+
+    <script>
+        // --- NEW: Header Logic Function ---
+        function initHeaderLogic() {
+            const btn = document.getElementById('mobile-menu-btn');
+            const menu = document.getElementById('mobile-menu');
+            
+            if (btn && menu) {
+                btn.onclick = function() {
+                    menu.classList.toggle('hidden');
+                    menu.classList.toggle('flex');
+                    
+                    // Icon Toggle
+                    const icon = btn.querySelector('i');
+                    if(menu.classList.contains('hidden')) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    } else {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    }
+                };
+            }
+        }
+        
+        function submitToWhatsapp(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const type = document.getElementById('type').value;
+            const message = document.getElementById('message').value;
+
+            const text = `*New Website Inquiry*\n\n*Name:* ${name}\n*Type:* ${type}\n*Message:* ${message}`;
+            const url = `https://wa.me/2347085060716?text=${encodeURIComponent(text)}`;
+            
+            window.open(url, '_blank');
+        }
+
+        async function loadComponents() {
+            try {
+                const headerRes = await fetch('header.html');
+                const footerRes = await fetch('footer.html');
+                if(headerRes.ok) {
+                      document.getElementById('header-container').innerHTML = await headerRes.text();
+                      initHeaderLogic(); // <--- ADD THIS LINE HERE
+                }
+                if(footerRes.ok) document.getElementById('footer-container').innerHTML = await footerRes.text();
+            } catch (e) { console.warn("Use local server"); }
+        }
+        loadComponents();
+    </script>
+</body>
+</html>
