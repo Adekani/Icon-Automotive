@@ -51,18 +51,34 @@
     },
     {
         "id": "1003",
-        "brand": "Range Rover",
-        "model": "Vogue Autobiography",
-        "year": 2019,
-        "price": 95000000,
-        "location": "Abuja",
+        "brand": "Mercedes-Benz",
+        "model": "GLE 450 4Matic" ,
+        "year": 2020,
+        "price": 100000000,
+        "location": "Lagos",
         "usageState": "Foreign Used",
         "faceliftYear": null,
         "images": [
-            "https://images.unsplash.com/photo-1606220838315-056192d5e927?q=80&w=2070&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070&auto=format&fit=crop"
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0017.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0023.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0016.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0018.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0019.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0020.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0021.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0022.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0024.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0025.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0026.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0027.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0028.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0029.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0030.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0031.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0032.jpg",
+            "car_pics/Black_Benz_GLE450/IMG-20251201-WA0033.jpg"
         ],
-        "bio": "The ultimate status symbol. Long Wheel Base (LWB) for maximum rear legroom. Massage seats, refrigerator, and rear entertainment screens included. The engine purrs like a kitten."
+        "bio": "Rugged reliability meets modern Luxury. This 2020 GLE 450 Is Clean Tokunbo with a Low Mileage and a solid Price\nAccident Free and well Maintained, Lagos Deal."
     },
     {
         "id": "1004",
@@ -81,6 +97,7 @@
     }
 
 ]
+
 
 
 
