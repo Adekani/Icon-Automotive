@@ -25,18 +25,29 @@
     },
     {
         "id": "1002",
-        "brand": "Mercedes",
-        "model": "C300" ,
-        "year": 2016,
-        "price": 45000000,
-        "location": "Ibadan",
+        "brand": "Audi",
+        "model": "Q8 S-Line" ,
+        "year": 2020,
+        "price": 105000000,
+        "location": "Lekki, Lagos",
         "usageState": "Foreign Used",
         "faceliftYear": null,
         "images": [
-            "car_pics/IMG-20251219-WA0003.jpg",
-            "car_pics/IMG-20251219-WA0003.jpg"
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0014.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0008.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0004.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0016.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0015.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0012.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0013.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0011.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0010.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0005.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0009.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0007.jpg",
+            "car_pics/Audi_Q8_Sline/IMG-20251212-WA0006.jpg"
         ],
-        "bio": "Rugged reliability meets modern aesthetics. This 2018 Prado has been professionally facelifted to the 2022 model year kit, giving you the latest look at a fraction of the cost. Maintained by authorized dealers."
+        "bio": "2020 Model Audi Q8 S Line\nForeign 🇺🇸🇺🇸 Full Options,Full Panoramic Roof, Thumbstart ignition,Total Accident Free\nLAGOS DEAL ."
     },
     {
         "id": "1003",
@@ -70,5 +81,6 @@
     }
 
 ]
+
 
 
