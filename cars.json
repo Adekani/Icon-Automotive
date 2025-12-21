@@ -2,18 +2,29 @@
     {
         "id": "1001",
         "brand": "Mercedes-Benz",
-        "model": "GLE 450 Coupe",
-        "year": 2021,
-        "price": 85000000,
-        "location": "Ibadan",
+        "model": "Ml 350 4MATIC" ,
+        "year": 2013,
+        "price": 26300000,
+        "location": "Lekki, Lagos",
         "usageState": "Foreign Used",
         "faceliftYear": null,
         "images": [
-            "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=2070&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?q=80&w=2064&auto=format&fit=crop"
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0064.jpg",
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0065.jpg",
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0066.jpg",
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0059.jpg",
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0062.jpg",
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0061.jpg",
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0060.jpg",
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0054.jpg",
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0055.jpg",
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0056.jpg",
+            "car_pics/Black_Benz_Ml/IMG-20251202-WA0067.jpg"
         ],
-        "bio": "Experience the pinnacle of luxury SUVs. This GLE 450 combines AMG styling with executive comfort. Features include a panoramic roof, Burmester sound system, and 360-degree cameras. Immaculate condition."
+        "bio": "🇺🇸2013 Model Mercedes-Benz ML350 4MATIC 🇺🇸
+Direct Tokunbo 🇺🇸, Clean In And Out
+100% Accident Free 
+  LAGOS DEAL ."
     },
     {
         "id": "1002",
