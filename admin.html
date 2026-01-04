@@ -12,215 +12,350 @@
         :root { --brand-red: #E60002; --brand-dark: #0a0a0a; }
         body { font-family: 'Montserrat', sans-serif; background-color: var(--brand-dark); color: #fff; margin: 0; }
         .font-heading { font-family: 'Orenburg', serif; }
-        .brand-input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 4px; width: 100%; }
-        .brand-input:focus { border-color: var(--brand-red); outline: none; }
-        .btn-primary { background: var(--brand-red); color: white; font-weight: bold; padding: 12px; border-radius: 4px; width: 100%; cursor: pointer; border: none; transition: 0.3s; }
-        .btn-primary:hover { opacity: 0.8; }
+        
+        /* Input Styles */
+        .brand-input { 
+            background: #1a1a1a; 
+            border: 1px solid #333; 
+            color: white; 
+            padding: 12px; 
+            border-radius: 4px; 
+            width: 100%; 
+            outline: none;
+        }
+        .brand-input:focus { border-color: var(--brand-red); }
+        
+        /* Button Styles */
+        .btn-primary { 
+            background: var(--brand-red); 
+            color: white; 
+            font-weight: bold; 
+            padding: 12px; 
+            border-radius: 4px; 
+            width: 100%; 
+            cursor: pointer; 
+            border: none; 
+            transition: 0.3s; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-primary:hover { opacity: 0.9; }
         .btn-primary:disabled { background: #555; cursor: not-allowed; }
+        
         .hidden { display: none !important; }
+        
+        /* Loading Spinner */
+        .spinner {
+            border: 2px solid rgba(255,255,255,0.1);
+            border-left-color: var(--brand-red);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <!-- 1. LOGIN SCREEN -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center bg-black px-4">
-        <div class="max-w-md w-full bg-[#0f0f0f] p-8 rounded-lg border border-gray-800 shadow-2xl">
+        <div class="max-w-md w-full bg-[#0f0f0f] p-8 rounded-lg border border-gray-800 shadow-2xl relative">
             <div class="text-center mb-8">
                 <h1 class="font-heading text-3xl mb-2">ICON <span style="color:var(--brand-red)">AUTOMOTIVE</span></h1>
-                <p class="text-gray-500 text-sm uppercase tracking-widest">Admin Portal</p>
+                <p class="text-gray-500 text-sm uppercase tracking-widest">Authorized Access Only</p>
             </div>
             
-            <form id="login-form" class="space-y-4">
+            <form id="login-form" class="space-y-5" onsubmit="return false;">
                 <div>
-                    <label class="block text-xs text-gray-400 mb-1">EMAIL</label>
-                    <input type="email" id="email" required class="brand-input" placeholder="olubanjoadekani@gmail.com">
+                    <label class="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
+                    <input type="email" id="email" required class="brand-input" placeholder="admin@iconautomotive.com">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">PASSWORD</label>
                     <input type="password" id="password" required class="brand-input" placeholder="••••••••">
                 </div>
-                <button type="submit" id="login-btn" class="btn-primary">LOGIN</button>
-                <div id="error-container" class="mt-4 p-3 bg-red-900/20 border border-red-500/50 rounded hidden">
-                    <p id="error-msg" class="text-red-500 text-center text-xs"></p>
+                <button type="submit" id="login-btn" class="btn-primary">Login</button>
+                
+                <!-- Error Message Box -->
+                <div id="error-container" class="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded hidden">
+                    <p id="error-msg" class="text-red-500 text-center text-xs font-medium"></p>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- 2. MAIN DASHBOARD -->
-    <div id="main-dashboard" class="hidden min-h-screen flex">
+    <div id="main-dashboard" class="hidden min-h-screen flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-64 bg-black border-r border-gray-900 flex flex-col">
-            <div class="p-6 font-heading text-xl border-b border-gray-900">ICON ADMIN</div>
-            <div class="p-6 flex-1 space-y-4">
-                <button onclick="showView('inventory')" class="block w-full text-left text-gray-400 hover:text-white"><i class="fa fa-car mr-2"></i> Inventory</button>
-                <button onclick="showView('add')" class="block w-full text-left text-gray-400 hover:text-white"><i class="fa fa-plus mr-2"></i> Add Car</button>
+        <div class="w-full md:w-64 bg-black border-r border-gray-900 flex flex-col z-20">
+            <div class="p-6 font-heading text-xl border-b border-gray-900 flex justify-between items-center">
+                <span>ICON ADMIN</span>
+                <button onclick="handleLogout()" class="md:hidden text-red-500"><i class="fa fa-sign-out"></i></button>
             </div>
-            <div class="p-6 border-t border-gray-900">
-                <p id="user-display" class="text-xs text-gray-500 truncate mb-2"></p>
-                <button onclick="handleLogout()" class="text-red-500 text-xs font-bold uppercase">Sign Out</button>
+            <div class="p-4 md:p-6 flex-1 space-y-2 md:space-y-4 flex md:block overflow-x-auto">
+                <button onclick="showView('inventory')" class="w-full text-left text-gray-400 hover:text-white p-2 rounded hover:bg-gray-900 transition"><i class="fa fa-car mr-3"></i> Inventory</button>
+                <button onclick="showView('add')" class="w-full text-left text-gray-400 hover:text-white p-2 rounded hover:bg-gray-900 transition"><i class="fa fa-plus-circle mr-3"></i> Add Car</button>
+            </div>
+            <div class="p-6 border-t border-gray-900 hidden md:block">
+                <p id="user-display" class="text-xs text-gray-500 truncate mb-2 opacity-50"></p>
+                <button onclick="handleLogout()" class="text-red-500 text-xs font-bold uppercase hover:text-red-400">Log Out</button>
             </div>
         </div>
 
-        <!-- Content -->
-        <div class="flex-1 p-8 overflow-y-auto">
-            <div id="view-inventory">
-                <h2 class="text-2xl font-bold mb-6">Vehicle Inventory</h2>
+        <!-- Content Area -->
+        <div class="flex-1 bg-[#050505] p-4 md:p-8 overflow-y-auto h-screen">
+            
+            <!-- VIEW: INVENTORY -->
+            <div id="view-inventory" class="max-w-6xl mx-auto">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-bold">Vehicle Inventory</h2>
+                    <button onclick="showView('add')" class="md:hidden bg-red-600 text-white px-3 py-1 rounded text-sm">+ Add</button>
+                </div>
                 <div id="car-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Cars show up here -->
+                    <!-- Cars will be injected here -->
                 </div>
             </div>
             
-            <div id="view-add" class="hidden">
+            <!-- VIEW: ADD CAR -->
+            <div id="view-add" class="hidden max-w-2xl mx-auto">
                 <h2 class="text-2xl font-bold mb-6">Add New Vehicle</h2>
-                <div class="bg-[#111] p-6 rounded border border-gray-800 max-w-2xl">
-                    <p class="text-gray-400 mb-4">Form goes here...</p>
+                <div class="bg-[#111] p-6 rounded border border-gray-800">
+                    <form id="add-car-form" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-500">Brand</label>
+                                <input type="text" id="new-brand" class="brand-input" required placeholder="Toyota">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500">Model</label>
+                                <input type="text" id="new-model" class="brand-input" required placeholder="Camry">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-500">Year</label>
+                                <input type="number" id="new-year" class="brand-input" required placeholder="2022">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500">Price (₦)</label>
+                                <input type="number" id="new-price" class="brand-input" required placeholder="15000000">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">Usage State</label>
+                            <select id="new-usage" class="brand-input">
+                                <option>Foreign Used</option>
+                                <option>Nigerian Used</option>
+                                <option>Brand New</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">Location</label>
+                            <input type="text" id="new-location" class="brand-input" required placeholder="Lagos">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">Image URL (Paste Link)</label>
+                            <input type="url" id="new-image" class="brand-input" placeholder="https://...">
+                            <p class="text-[10px] text-gray-500 mt-1">Right click an image online -> Copy Image Address -> Paste here</p>
+                        </div>
+                        <button type="submit" class="btn-primary mt-4">Save Vehicle</button>
+                    </form>
                 </div>
             </div>
+
         </div>
     </div>
 
     <script>
-        // --- STEP 1: ADD YOUR ACTUAL KEYS HERE ---
+        // --- CONFIGURATION ---
         const SB_URL = 'https://dpzvjsfgilnuzedghfww.supabase.co'; 
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwenZqc2ZnaWxudXplZGdoZnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MjUyMTcsImV4cCI6MjA4MzEwMTIxN30.KjnG8hVXcWshG1XIDOrWEnM1ITiLT2Nzu3b1Z1ix-8Q';
         
-        let supabase;
-        try {
-            supabase = window.supabase.createClient(SB_URL, SB_KEY);
-        } catch (e) {
-            console.error("Supabase Init Error:", e);
-        }
+        // We rename the variable to 'sbClient' to avoid conflict with the library 'supabase'
+        let sbClient; 
 
+        // --- DOM ELEMENTS ---
         const loginForm = document.getElementById('login-form');
         const loginScreen = document.getElementById('login-screen');
         const dashboard = document.getElementById('main-dashboard');
         const errorContainer = document.getElementById('error-container');
         const errorMsg = document.getElementById('error-msg');
         const loginBtn = document.getElementById('login-btn');
+        const addCarForm = document.getElementById('add-car-form');
 
-        // Check session on load
-        window.onload = async () => {
-            if (!supabase) return showError("Database configuration missing.");
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (session) checkAdminStatus(session.user);
-        };
+        // --- INITIALIZATION ---
+        window.addEventListener('load', async () => {
+            try {
+                // Initialize Supabase
+                sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+                
+                // Check if user is already logged in
+                const { data: { session } } = await sbClient.auth.getSession();
+                if (session) {
+                    checkAdminStatus(session.user);
+                }
+            } catch (err) {
+                console.error("Initialization Error:", err);
+                showError("Could not connect to database. Check console.");
+            }
+        });
 
-        // Login Handler
-        loginForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // CRITICAL: Prevents page refresh
+        // --- LOGIN LOGIC ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // STOP PAGE REFRESH
             
             errorContainer.classList.add('hidden');
-            loginBtn.innerText = "AUTHENTICATING...";
+            loginBtn.innerHTML = '<span class="spinner"></span> Verifying...';
             loginBtn.disabled = true;
 
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
 
             try {
-                // 1. Authenticate with Supabase
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                // 1. Attempt Login
+                const { data, error } = await sbClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
 
-                if (error) {
-                    showError(error.message);
-                    resetLoginBtn();
-                    return;
-                }
+                if (error) throw error;
 
-                // 2. Check Admin Table
-                loginBtn.innerText = "CHECKING PERMISSIONS...";
-                checkAdminStatus(data.user);
+                // 2. Check Whitelist
+                loginBtn.innerHTML = '<span class="spinner"></span> Checking Access...';
+                await checkAdminStatus(data.user);
 
-            } catch (err) {
-                showError("System Error: Check console.");
-                console.error(err);
-                resetLoginBtn();
+            } catch (error) {
+                console.error("Login Error:", error);
+                showError(error.message || "Invalid credentials");
+                loginBtn.innerHTML = 'Login';
+                loginBtn.disabled = false;
             }
         });
 
+        // --- ADMIN CHECK ---
         async function checkAdminStatus(user) {
-            try {
-                const { data, error } = await supabase
-                    .from('allowed_admins')
-                    .select('email')
-                    .eq('email', user.email)
-                    .single();
+            // Query the 'allowed_admins' table
+            const { data, error } = await sbClient
+                .from('allowed_admins')
+                .select('email')
+                .eq('email', user.email)
+                .single();
 
-                if (error || !data) {
-                    showError("Access Denied: " + user.email + " is not authorized.");
-                    await supabase.auth.signOut();
-                    resetLoginBtn();
-                    return;
-                }
-
-                // SUCCESS
-                loginScreen.classList.add('hidden');
-                dashboard.classList.remove('hidden');
-                document.getElementById('user-display').innerText = user.email;
-                fetchCars();
-            } catch (err) {
-                showError("Database Permission Error.");
-                resetLoginBtn();
+            if (error || !data) {
+                // Log them out if they aren't on the list
+                await sbClient.auth.signOut();
+                throw new Error("Access Denied: Email not authorized.");
             }
+
+            // SUCCESS: Show Dashboard
+            loginScreen.classList.add('hidden');
+            dashboard.classList.remove('hidden');
+            document.getElementById('user-display').textContent = user.email;
+            fetchInventory();
         }
 
-        function showError(text) {
-            errorMsg.innerText = text;
-            errorContainer.classList.remove('hidden');
-            console.error("Login App Error:", text);
-        }
-
-        function resetLoginBtn() {
-            loginBtn.innerText = "LOGIN";
-            loginBtn.disabled = false;
+        // --- DASHBOARD LOGIC ---
+        function showView(viewName) {
+            document.getElementById('view-inventory').classList.add('hidden');
+            document.getElementById('view-add').classList.add('hidden');
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
         }
 
         async function handleLogout() {
-            await supabase.auth.signOut();
+            await sbClient.auth.signOut();
             window.location.reload();
         }
 
-        function showView(view) {
-            document.getElementById('view-inventory').classList.add('hidden');
-            document.getElementById('view-add').classList.add('hidden');
-            document.getElementById('view-' + view).classList.remove('hidden');
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorContainer.classList.remove('hidden');
         }
 
-        async function fetchCars() {
+        // --- INVENTORY LOGIC ---
+        async function fetchInventory() {
             const list = document.getElementById('car-list');
-            list.innerHTML = `<div class="col-span-full text-center py-10"><i class="fas fa-spinner fa-spin mr-2"></i> Loading Inventory...</div>`;
-            
-            const { data: cars, error } = await supabase.from('cars').select('*').order('created_at', { ascending: false });
-            
+            list.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500"><span class="spinner"></span> Loading inventory...</div>';
+
+            const { data: cars, error } = await sbClient
+                .from('cars')
+                .select('*')
+                .order('created_at', { ascending: false });
+
             if (error) {
-                list.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+                list.innerHTML = `<div class="col-span-full text-red-500 text-center">Error loading cars</div>`;
                 return;
             }
 
-            if (!cars || cars.length === 0) {
-                list.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">No vehicles in inventory. Click "Add Car" to start.</div>`;
+            if (!cars.length) {
+                list.innerHTML = `<div class="col-span-full text-gray-500 text-center py-12">No vehicles found.</div>`;
                 return;
             }
 
             list.innerHTML = cars.map(car => `
-                <div class="bg-[#111] border border-gray-800 rounded overflow-hidden group hover:border-red-500/50 transition-all">
-                    <div class="h-40 bg-gray-900 flex items-center justify-center text-gray-700">
-                        ${car.images && car.images[0] ? `<img src="${car.images[0]}" class="w-full h-full object-cover">` : '<i class="fa fa-image text-3xl"></i>'}
+                <div class="bg-[#111] border border-gray-800 rounded-lg overflow-hidden flex flex-col hover:border-red-900 transition-colors">
+                    <div class="h-48 bg-gray-900 relative">
+                        ${car.images && car.images[0] 
+                            ? `<img src="${car.images[0]}" class="w-full h-full object-cover">` 
+                            : `<div class="w-full h-full flex items-center justify-center text-gray-700"><i class="fa fa-car text-3xl"></i></div>`
+                        }
+                        <div class="absolute top-2 right-2 bg-black/80 px-2 py-1 text-[10px] rounded uppercase text-white">${car.usage_state}</div>
                     </div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-white">${car.year} ${car.brand}</h3>
-                            <span class="text-[10px] bg-gray-800 px-2 py-1 rounded uppercase tracking-tighter text-gray-400">${car.usage_state}</span>
-                        </div>
+                    <div class="p-4 flex-1">
+                        <h3 class="font-bold text-lg leading-tight mb-1">${car.year} ${car.brand}</h3>
                         <p class="text-gray-400 text-sm mb-3">${car.model}</p>
-                        <p class="text-white font-bold text-lg">₦${Number(car.price).toLocaleString()}</p>
-                        <div class="mt-4 flex gap-2">
-                            <button class="flex-1 bg-gray-800 hover:bg-gray-700 text-xs py-2 rounded">Edit</button>
-                            <button class="px-3 bg-red-900/20 text-red-500 hover:bg-red-500 hover:text-white text-xs py-2 rounded transition-all"><i class="fa fa-trash"></i></button>
-                        </div>
+                        <p class="text-[#E60002] font-bold text-xl">₦${Number(car.price).toLocaleString()}</p>
+                        <p class="text-xs text-gray-600 mt-2"><i class="fa fa-map-marker mr-1"></i> ${car.location}</p>
+                    </div>
+                    <div class="p-3 border-t border-gray-800 flex gap-2">
+                        <button onclick="deleteCar(${car.id})" class="flex-1 bg-red-900/10 text-red-500 hover:bg-red-600 hover:text-white py-2 rounded text-xs transition">Delete</button>
                     </div>
                 </div>
             `).join('');
+        }
+
+        // --- ADD CAR LOGIC ---
+        addCarForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner"></span> Saving...';
+            btn.disabled = true;
+
+            const newCar = {
+                brand: document.getElementById('new-brand').value,
+                model: document.getElementById('new-model').value,
+                year: document.getElementById('new-year').value,
+                price: document.getElementById('new-price').value,
+                usage_state: document.getElementById('new-usage').value,
+                location: document.getElementById('new-location').value,
+                images: document.getElementById('new-image').value ? [document.getElementById('new-image').value] : []
+            };
+
+            const { error } = await sbClient.from('cars').insert([newCar]);
+
+            if (error) {
+                alert("Error saving: " + error.message);
+            } else {
+                e.target.reset();
+                showView('inventory');
+                fetchInventory();
+            }
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+
+        // --- DELETE LOGIC ---
+        window.deleteCar = async (id) => {
+            if(!confirm("Are you sure you want to delete this vehicle?")) return;
+            
+            const { error } = await sbClient.from('cars').delete().eq('id', id);
+            if (error) alert(error.message);
+            else fetchInventory();
         }
     </script>
 </body>
