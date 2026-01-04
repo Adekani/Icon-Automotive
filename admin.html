@@ -84,7 +84,7 @@
                     <button type="submit" id="login-btn" class="w-full bg-[#E60002] hover:bg-red-700 py-3 font-bold tracking-widest transition-colors">
                         LOGIN WITH PASSWORD
                     </button>
-                    <button type="button" onclick="window.sendMagicLink()" id="magic-btn" class="w-full bg-white/5 hover:bg-white/10 py-3 text-xs font-bold tracking-widest transition-colors text-white">
+                    <button type="button" onclick="sendMagicLink()" id="magic-btn" class="w-full bg-white/5 hover:bg-white/10 py-3 text-xs font-bold tracking-widest transition-colors text-white">
                         SEND MAGIC LINK INSTEAD
                     </button>
                 </div>
@@ -121,7 +121,7 @@
                     <h2 class="text-3xl font-heading">VEHICLE LISTINGS</h2>
                     <p class="text-gray-400 text-sm mt-1">Manage your inventory</p>
                 </div>
-                <button onclick="openCarModal()" class="bg-[#E60002] hover:bg-red-700 px-6 py-3 font-bold text-sm tracking-widest flex items-center gap-2">
+                <button onclick="alert('Functionality coming soon - ensure data table loads first')" class="bg-[#E60002] hover:bg-red-700 px-6 py-3 font-bold text-sm tracking-widest flex items-center gap-2">
                     <i class="fas fa-plus"></i> ADD VEHICLE
                 </button>
             </div>
@@ -161,7 +161,7 @@
     </main>
 
     <script>
-        // CONFIG
+        // 1. GLOBAL CONFIG (Only declare ONCE)
         const SUPABASE_URL = 'https://dpzvjsfgilnuzedghfww.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwenZqc2ZnaWxudXplZGdoZnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MjUyMTcsImV4cCI6MjA4MzEwMTIxN30.KjnG8hVXcWshG1XIDOrWEnM1ITiLT2Nzu3b1Z1ix-8Q';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -169,79 +169,71 @@
         let currentUser = null;
         let allCars = [];
 
-        // UI HELPERS
+        // 2. UI HELPERS
         const showLoading = (msg) => {
-            document.getElementById('loading-text').innerText = msg;
-            document.getElementById('loading-overlay').style.display = 'flex';
+            const overlay = document.getElementById('loading-overlay');
+            const text = document.getElementById('loading-text');
+            if(overlay) overlay.style.display = 'flex';
+            if(text) text.innerText = msg;
         }
         const hideLoading = () => {
-            document.getElementById('loading-overlay').style.display = 'none';
+            const overlay = document.getElementById('loading-overlay');
+            if(overlay) overlay.style.display = 'none';
         }
 
-        // MAGIC LINK FUNCTION (Attached to window for global scope)
-        window.sendMagicLink = async function() {
-            console.log("Magic Link clicked");
-            const email = document.getElementById('email').value;
+        // 3. AUTH FUNCTIONS (Global Scope)
+        async function sendMagicLink() {
+            console.log("Attempting to send Magic Link...");
+            const emailInput = document.getElementById('email');
             const btn = document.getElementById('magic-btn');
             const msg = document.getElementById('login-msg');
             
+            const email = emailInput.value.trim();
             if(!email) return alert("Please enter your email");
             
             btn.disabled = true;
             btn.innerText = "SENDING...";
-            msg.innerText = "Sending magic link...";
             
-            const { error } = await supabase.auth.signInWithOtp({ 
-                email: email,
-                options: {
-                    emailRedirectTo: window.location.origin + window.location.pathname
-                }
-            });
-            
-            btn.disabled = false;
-            btn.innerText = "SEND MAGIC LINK INSTEAD";
+            try {
+                const { error } = await supabase.auth.signInWithOtp({ 
+                    email: email,
+                    options: {
+                        emailRedirectTo: window.location.href 
+                    }
+                });
+                
+                if(error) throw error;
 
-            if(error) { 
-                console.error("Magic Link Error:", error);
-                msg.innerText = error.message; 
-                msg.style.color = 'red'; 
-            } else { 
-                console.log("Magic Link Sent Successfully");
                 msg.innerText = "Link sent! Check your inbox."; 
-                msg.style.color = '#22c55e'; 
+                msg.style.color = '#22c55e';
+                console.log("Magic link request successful.");
+            } catch (err) {
+                console.error("Magic Link Error:", err);
+                msg.innerText = err.message; 
+                msg.style.color = 'red'; 
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "SEND MAGIC LINK INSTEAD";
             }
-        };
-
-        // --- AUTH LOGIC ---
-        window.addEventListener('load', async () => {
-            showLoading("CHECKING SESSION...");
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                checkAdminAndLogin(session.user);
-            } else {
-                hideLoading();
-            }
-
-            supabase.auth.onAuthStateChange(async (event, session) => {
-                if (event === 'SIGNED_IN' && session) {
-                    showLoading("VERIFYING ADMIN...");
-                    checkAdminAndLogin(session.user);
-                } else if (event === 'SIGNED_OUT') {
-                    window.location.reload();
-                }
-            });
-        });
+        }
 
         async function checkAdminAndLogin(user) {
+            console.log("Verifying admin permission for:", user.email);
             const { data, error } = await supabase
                 .from('allowed_admins')
                 .select('email')
                 .eq('email', user.email)
                 .maybeSingle();
             
-            if (error || !data) {
+            if (error) {
+                console.error("CheckAdmin Error:", error);
                 hideLoading();
-                alert("Unauthorized access. Email not in admin list.");
+                return;
+            }
+
+            if (!data) {
+                hideLoading();
+                alert("Unauthorized: " + user.email + " is not in the allowed_admins list.");
                 await supabase.auth.signOut();
                 return;
             }
@@ -256,45 +248,29 @@
             fetchCars();
         }
 
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('login-btn');
-            
-            if(!password) {
-                window.sendMagicLink();
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "LOGGING IN...";
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if(error) {
-                btn.disabled = false;
-                btn.innerText = "LOGIN WITH PASSWORD";
-                alert(error.message);
-            }
-        });
-
         async function handleLogout() {
             showLoading("LOGGING OUT...");
             await supabase.auth.signOut();
+            window.location.reload();
         }
 
+        // 4. DATA FUNCTIONS
         async function fetchCars() {
             const { data, error } = await supabase.from('cars').select('*').order('created_at', { ascending: false });
             if (!error) {
                 allCars = data;
                 renderCarsTable();
+            } else {
+                console.error("Fetch Cars Error:", error);
             }
         }
 
         function renderCarsTable() {
             const tbody = document.getElementById('cars-table-body');
+            if(!tbody) return;
             tbody.innerHTML = allCars.map(car => `
                 <tr>
-                    <td><img src="${car.images?.[0] || ''}" class="w-16 h-12 object-cover"></td>
+                    <td><img src="${car.images?.[0] || 'https://via.placeholder.com/64'}" class="w-16 h-12 object-cover"></td>
                     <td>${car.brand} ${car.model}</td>
                     <td>${car.year}</td>
                     <td class="text-[#E60002]">₦${car.price.toLocaleString()}</td>
@@ -311,6 +287,45 @@
             document.getElementById('page-dashboard').classList.toggle('hidden', pageId !== 'dashboard');
             document.getElementById('page-audit').classList.toggle('hidden', pageId !== 'audit');
         }
+
+        // 5. EVENT LISTENERS
+        window.addEventListener('load', async () => {
+            showLoading("CHECKING SESSION...");
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                checkAdminAndLogin(session.user);
+            } else {
+                hideLoading();
+            }
+
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    showLoading("VERIFYING ADMIN...");
+                    checkAdminAndLogin(session.user);
+                }
+            });
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('login-btn');
+            
+            if(!password) {
+                sendMagicLink();
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "LOGGING IN...";
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if(error) {
+                btn.disabled = false;
+                btn.innerText = "LOGIN WITH PASSWORD";
+                alert(error.message);
+            }
+        });
     </script>
 </body>
 </html>
