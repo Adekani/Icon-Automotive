@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory | Icon Automotive</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @font-face { font-family: 'Orenburg'; src: url('Orenburg.ttf') format('truetype'); }
@@ -148,6 +149,10 @@
     <div id="footer-container"></div>
 
     <script>
+        const SUPABASE_URL = 'https://dpzvjsfgilnuzedghfww.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwenZqc2ZnaWxudXplZGdoZnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MjUyMTcsImV4cCI6MjA4MzEwMTIxN30.KjnG8hVXcWshG1XIDOrWEnM1ITiLT2Nzu3b1Z1ix-8Q';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let allCars = [];
         let filters = { 
             brands: [], 
@@ -178,8 +183,25 @@
                 initHeaderLogic();
 
                 // 3. Load Cars
-                const res = await fetch('cars.json');
-                allCars = await res.json();
+                const { data, error } = await supabase
+                    .from('cars')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error("Supabase Error:", error);
+                    return;
+                }
+
+                // Map database snake_case to your existing code's camelCase
+                allCars = data.map(c => ({
+                    ...c,
+                    // Ensure numeric/string IDs don't break links
+                    id: c.id, 
+                    // Map database columns to JS properties
+                    usageState: c.usage_state,
+                    faceliftYear: c.facelift_year
+                }));
                 
                 setupDynamicFilters(allCars);
                 renderCars(allCars);
@@ -314,7 +336,7 @@
             cars.forEach(car => {
                 const card = `
                     <div class="group bg-[#111] rounded-sm overflow-hidden border border-white/5 hover:border-[#E60002]/50 transition-all duration-300 shadow-lg hover:shadow-red-900/10 cursor-pointer" onclick="window.location.href='car.html?id=${car.id}'">
-                        <div class="aspect-[16/10] overflow-hidden relative">
+                        <div class="aspect-[4/3] overflow-hidden relative">
                             <img src="${car.images[0]}" alt="${car.brand}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                             <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black to-transparent"></div>
                             <div class="absolute bottom-3 left-3 flex gap-2">
@@ -350,4 +372,4 @@
         window.addEventListener('load', initCatalog);
     </script>
 </body>
-</html>
+    </html> 
