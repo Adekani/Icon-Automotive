@@ -4,569 +4,179 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | Icon Automotive</title>
-    
-    <!-- Supabase & Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        /* BRANDING CONFIGURATION */
         @font-face { font-family: 'Orenburg'; src: 'Orenburg.ttf' format('truetype'); }
-        :root { 
-            --brand-red: #E60002; 
-            --brand-dark: #0a0a0a; 
-            --brand-gray: #1a1a1a;
-        }
-        
-        body { 
-            font-family: 'Montserrat', sans-serif; 
-            background-color: var(--brand-dark); 
-            color: #e5e5e5; 
-        }
-        
+        :root { --brand-red: #E60002; --brand-dark: #0a0a0a; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--brand-dark); color: #fff; margin: 0; }
         .font-heading { font-family: 'Orenburg', serif; }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--brand-dark); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--brand-red); }
-
-        /* Login Screen specific */
-        #login-section {
-            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
-            background-size: cover;
-            background-position: center;
-        }
-
-        /* Form Elements */
-        .brand-input {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid #333;
-            color: white;
-            transition: all 0.3s;
-        }
-        .brand-input:focus {
-            border-color: var(--brand-red);
-            outline: none;
-            background: rgba(255,255,255,0.1);
-        }
-
-        /* Sidebar Links */
-        .nav-item {
-            border-left: 3px solid transparent;
-            transition: all 0.3s;
-        }
-        .nav-item.active {
-            background: linear-gradient(90deg, rgba(230,0,2,0.1) 0%, transparent 100%);
-            border-left-color: var(--brand-red);
-            color: white;
-        }
-        .nav-item:hover:not(.active) {
-            background: rgba(255,255,255,0.03);
-            color: white;
-        }
+        .brand-input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 4px; width: 100%; }
+        .brand-input:focus { border-color: var(--brand-red); outline: none; }
+        .btn-primary { background: var(--brand-red); color: white; font-weight: bold; padding: 12px; border-radius: 4px; width: 100%; cursor: pointer; border: none; transition: 0.3s; }
+        .btn-primary:hover { opacity: 0.8; }
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="h-screen overflow-hidden flex flex-col">
+<body>
 
-    <!-- LOGIN SCREEN (Shown by default) -->
-    <div id="login-section" class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="bg-black/90 p-8 rounded-lg border border-gray-800 shadow-2xl w-full max-w-md backdrop-blur-sm">
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-black px-4">
+        <div class="max-w-md w-full bg-[#0f0f0f] p-8 rounded-lg border border-gray-800 shadow-2xl">
             <div class="text-center mb-8">
-                <h1 class="font-heading text-4xl text-white tracking-wider">ICON <span style="color: var(--brand-red);">AUTOMOTIVE</span></h1>
-                <p class="text-gray-400 text-sm mt-2">Restricted Access Area</p>
+                <h1 class="font-heading text-3xl mb-2">ICON <span style="color:var(--brand-red)">AUTOMOTIVE</span></h1>
+                <p class="text-gray-500 text-sm uppercase tracking-widest">Admin Portal</p>
             </div>
             
-            <form id="login-form" class="space-y-6">
+            <form id="login-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Email Address</label>
-                    <input type="email" id="email" required class="brand-input w-full p-3 rounded" placeholder="admin@iconautomotive.com">
+                    <label class="block text-xs text-gray-400 mb-1">EMAIL</label>
+                    <input type="email" id="email" required class="brand-input" placeholder="olubanjoadekani@gmail.com">
                 </div>
                 <div>
-                    <label class="block text-xs uppercase tracking-wider text-gray-500 mb-2">Password</label>
-                    <input type="password" id="password" required class="brand-input w-full p-3 rounded" placeholder="••••••••">
+                    <label class="block text-xs text-gray-400 mb-1">PASSWORD</label>
+                    <input type="password" id="password" required class="brand-input" placeholder="••••••••">
                 </div>
-                <button type="submit" class="w-full bg-[#E60002] hover:bg-red-700 text-white font-bold py-3 rounded transition duration-300 uppercase tracking-widest text-sm shadow-[0_0_15px_rgba(230,0,2,0.4)]">
-                    Access Dashboard
-                </button>
-                <div id="login-error" class="text-red-500 text-center text-sm hidden"></div>
+                <button type="submit" id="login-btn" class="btn-primary">LOGIN</button>
+                <p id="error-msg" class="text-red-500 text-center text-xs mt-4 hidden"></p>
             </form>
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD (Hidden by default) -->
-    <div id="dashboard-section" class="flex-1 flex hidden">
-        
-        <!-- SIDEBAR -->
-        <aside class="w-64 bg-[#050505] border-r border-gray-900 flex flex-col hidden md:flex">
-            <div class="p-6 border-b border-gray-900">
-                <h2 class="font-heading text-xl">ICON <span class="text-[#E60002]">ADMIN</span></h2>
+    <!-- 2. MAIN DASHBOARD -->
+    <div id="main-dashboard" class="hidden min-h-screen flex">
+        <!-- Sidebar -->
+        <div class="w-64 bg-black border-r border-gray-900 flex flex-col">
+            <div class="p-6 font-heading text-xl border-b border-gray-900">ICON ADMIN</div>
+            <div class="p-6 flex-1 space-y-4">
+                <button onclick="showView('inventory')" class="block w-full text-left text-gray-400 hover:text-white"><i class="fa fa-car mr-2"></i> Inventory</button>
+                <button onclick="showView('add')" class="block w-full text-left text-gray-400 hover:text-white"><i class="fa fa-plus mr-2"></i> Add Car</button>
             </div>
-            
-            <nav class="flex-1 py-6 space-y-1">
-                <button onclick="switchTab('inventory')" id="nav-inventory" class="nav-item w-full text-left px-6 py-3 text-gray-400 flex items-center gap-3 active">
-                    <i class="fa-solid fa-car"></i> Inventory
-                </button>
-                <button onclick="switchTab('add-car')" id="nav-add-car" class="nav-item w-full text-left px-6 py-3 text-gray-400 flex items-center gap-3">
-                    <i class="fa-solid fa-plus-circle"></i> Add New Car
-                </button>
-                <button onclick="switchTab('audit')" id="nav-audit" class="nav-item w-full text-left px-6 py-3 text-gray-400 flex items-center gap-3">
-                    <i class="fa-solid fa-clipboard-list"></i> Audit Logs
-                </button>
-            </nav>
-
             <div class="p-6 border-t border-gray-900">
-                <div class="text-xs text-gray-600 mb-2">LOGGED IN AS</div>
-                <div id="current-user-email" class="text-sm text-white truncate mb-4">...</div>
-                <button onclick="logout()" class="text-xs text-red-500 hover:text-red-400 flex items-center gap-2">
-                    <i class="fa-solid fa-sign-out-alt"></i> SIGN OUT
-                </button>
+                <p id="user-display" class="text-xs text-gray-500 truncate mb-2"></p>
+                <button onclick="handleLogout()" class="text-red-500 text-xs font-bold">LOGOUT</button>
             </div>
-        </aside>
-
-        <!-- MOBILE HEADER -->
-        <div class="md:hidden fixed top-0 w-full bg-black border-b border-gray-800 p-4 flex justify-between items-center z-40">
-            <span class="font-heading text-lg">ICON ADMIN</span>
-            <button onclick="logout()" class="text-red-500"><i class="fa-solid fa-sign-out-alt"></i></button>
         </div>
 
-        <!-- CONTENT AREA -->
-        <main class="flex-1 bg-[#0a0a0a] overflow-auto relative md:p-8 p-4 pt-20 md:pt-8">
+        <!-- Content -->
+        <div class="flex-1 p-8 overflow-y-auto">
+            <div id="view-inventory">
+                <h2 class="text-2xl font-bold mb-6">Vehicle Inventory</h2>
+                <div id="car-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cars show up here -->
+                </div>
+            </div>
             
-            <!-- VIEW: INVENTORY -->
-            <div id="view-inventory" class="dashboard-view">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Vehicle Inventory</h2>
-                    <button onclick="switchTab('add-car')" class="md:hidden bg-[#E60002] text-white px-4 py-2 rounded text-sm">
-                        + Add Car
-                    </button>
-                </div>
-                
-                <div class="overflow-x-auto rounded-lg border border-gray-800 bg-[#0f0f0f]">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-gray-400 uppercase bg-[#151515] border-b border-gray-800">
-                            <tr>
-                                <th class="px-6 py-3">Vehicle</th>
-                                <th class="px-6 py-3">Price</th>
-                                <th class="px-6 py-3">Status</th>
-                                <th class="px-6 py-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-list" class="divide-y divide-gray-800">
-                            <!-- JS will populate this -->
-                            <tr>
-                                <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                                    <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i><br>Loading Inventory...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div id="view-add" class="hidden">
+                <h2 class="text-2xl font-bold mb-6">Add New Vehicle</h2>
+                <p class="text-gray-400 mb-4">Inventory management features will appear here once connected.</p>
             </div>
-
-            <!-- VIEW: ADD/EDIT CAR -->
-            <div id="view-add-car" class="dashboard-view hidden">
-                <div class="max-w-2xl mx-auto">
-                    <div class="flex items-center gap-4 mb-6">
-                        <button onclick="switchTab('inventory')" class="text-gray-500 hover:text-white">
-                            <i class="fa-solid fa-arrow-left"></i>
-                        </button>
-                        <h2 class="text-2xl font-bold" id="form-title">Add New Vehicle</h2>
-                    </div>
-
-                    <form id="car-form" class="space-y-6">
-                        <input type="hidden" id="edit-car-id"> <!-- Hidden ID for edits -->
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Brand</label>
-                                <input type="text" id="brand" required class="brand-input w-full p-3 rounded" placeholder="e.g. Mercedes-Benz">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Model</label>
-                                <input type="text" id="model" required class="brand-input w-full p-3 rounded" placeholder="e.g. C300">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Year</label>
-                                <input type="number" id="year" required class="brand-input w-full p-3 rounded" placeholder="2020">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Facelift (Optional)</label>
-                                <input type="number" id="facelift" class="brand-input w-full p-3 rounded" placeholder="2022">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Price (₦)</label>
-                                <input type="number" id="price" required class="brand-input w-full p-3 rounded" placeholder="25000000">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Usage State</label>
-                                <select id="usage" required class="brand-input w-full p-3 rounded">
-                                    <option value="Foreign Used">Foreign Used</option>
-                                    <option value="Nigerian Used">Nigerian Used</option>
-                                    <option value="Brand New">Brand New</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Location</label>
-                                <input type="text" id="location" required class="brand-input w-full p-3 rounded" placeholder="e.g. Abuja">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs text-gray-500 mb-1">Description / Bio</label>
-                            <textarea id="bio" rows="3" class="brand-input w-full p-3 rounded" placeholder="Key features, condition notes..."></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs text-gray-500 mb-1">Images</label>
-                            <input type="file" id="image-upload" multiple accept="image/*" class="brand-input w-full p-3 rounded text-sm text-gray-400">
-                            <div id="image-preview-container" class="flex gap-2 mt-2 overflow-x-auto pb-2"></div>
-                            <p class="text-xs text-gray-500 mt-1">* First image selected will be the cover.</p>
-                        </div>
-
-                        <div class="pt-4 border-t border-gray-800 flex gap-4">
-                            <button type="submit" id="save-btn" class="flex-1 bg-[#E60002] hover:bg-red-700 text-white font-bold py-3 rounded transition">
-                                <i class="fa-solid fa-save mr-2"></i> Save Vehicle
-                            </button>
-                            <button type="button" onclick="resetForm()" class="px-6 py-3 border border-gray-700 hover:bg-gray-800 rounded text-gray-400">
-                                Clear
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- VIEW: AUDIT LOGS -->
-            <div id="view-audit" class="dashboard-view hidden">
-                <h2 class="text-2xl font-bold mb-6">System Audit Logs</h2>
-                <div class="overflow-hidden rounded-lg border border-gray-800 bg-[#0f0f0f]">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-gray-400 uppercase bg-[#151515] border-b border-gray-800">
-                            <tr>
-                                <th class="px-6 py-3">Time</th>
-                                <th class="px-6 py-3">Action</th>
-                                <th class="px-6 py-3">Admin</th>
-                                <th class="px-6 py-3">Details</th>
-                            </tr>
-                        </thead>
-                        <tbody id="audit-list" class="divide-y divide-gray-800">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </main>
+        </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // CONFIGURATION
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE'; 
-        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // --- STEP 1: ADD YOUR KEYS HERE ---
+        const SB_URL = 'YOUR_SUPABASE_URL_HERE'; 
+        const SB_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
         
-        // DOM ELEMENTS
-        const loginSection = document.getElementById('login-section');
-        const dashboardSection = document.getElementById('dashboard-section');
+        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+
         const loginForm = document.getElementById('login-form');
-        const loginError = document.getElementById('login-error');
-        const currentUserDisplay = document.getElementById('current-user-email');
+        const loginScreen = document.getElementById('login-screen');
+        const dashboard = document.getElementById('main-dashboard');
+        const errorMsg = document.getElementById('error-msg');
+        const loginBtn = document.getElementById('login-btn');
 
-        let currentUser = null;
-
-        // 1. INITIALIZATION & AUTH CHECK
-        window.addEventListener('load', async () => {
+        // Check if already logged in on page load
+        window.onload = async () => {
             const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                handleUserLoggedIn(session.user);
-            } else {
-                showLogin();
-            }
-        });
+            if (session) checkAdminStatus(session.user);
+        };
 
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN') handleUserLoggedIn(session.user);
-            if (event === 'SIGNED_OUT') showLogin();
-        });
+        // Login Handler
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            errorMsg.classList.add('hidden');
+            loginBtn.innerText = "VERIFYING...";
+            loginBtn.disabled = true;
 
-        async function handleUserLoggedIn(user) {
-            // SECURITY CHECK: Is this user in our Allowed Admins table?
-            const { data: isAdmin, error } = await supabase.from('allowed_admins').select('email').eq('email', user.email).single();
-            
-            if (error || !isAdmin) {
-                // If they logged in but aren't an admin, kick them out
-                await supabase.auth.signOut();
-                loginError.textContent = "Access Denied: You are not an authorized administrator.";
-                loginError.classList.remove('hidden');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // 1. Try to log in to Supabase Auth
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                showError("Login Failed: " + error.message);
+                loginBtn.innerText = "LOGIN";
+                loginBtn.disabled = false;
                 return;
             }
 
-            currentUser = user;
-            currentUserDisplay.textContent = user.email;
-            loginSection.classList.add('hidden');
-            dashboardSection.classList.remove('hidden');
-            fetchInventory(); // Load data immediately
-        }
+            // 2. Logged in to Auth, now check if they are in our 'allowed_admins' table
+            checkAdminStatus(data.user);
+        };
 
-        function showLogin() {
-            loginSection.classList.remove('hidden');
-            dashboardSection.classList.add('hidden');
-            currentUser = null;
-        }
+        async function checkAdminStatus(user) {
+            const { data, error } = await supabase
+                .from('allowed_admins')
+                .select('*')
+                .eq('email', user.email)
+                .single();
 
-        // 2. LOGIN LOGIC
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = e.target.querySelector('button');
-            
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> VERIFYING...';
-            loginError.classList.add('hidden');
-
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
-
-            if (error) {
-                loginError.textContent = error.message;
-                loginError.classList.remove('hidden');
-                btn.innerHTML = 'ACCESS DASHBOARD';
+            if (error || !data) {
+                showError("Access Denied: Your email is not on the Admin list.");
+                await supabase.auth.signOut();
+                loginBtn.innerText = "LOGIN";
+                loginBtn.disabled = false;
+                return;
             }
-            // Success is handled by onAuthStateChange
-        });
 
-        async function logout() {
+            // Success!
+            loginScreen.classList.add('hidden');
+            dashboard.classList.remove('hidden');
+            document.getElementById('user-display').innerText = user.email;
+            fetchCars();
+        }
+
+        function showError(text) {
+            errorMsg.innerText = text;
+            errorMsg.classList.remove('hidden');
+        }
+
+        async function handleLogout() {
             await supabase.auth.signOut();
             window.location.reload();
         }
 
-        // 3. NAVIGATION LOGIC
-        function switchTab(tabId) {
-            // Update Sidebar
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`nav-${tabId === 'inventory' ? 'inventory' : tabId === 'add-car' ? 'add-car' : 'audit'}`).classList.add('active');
-            
-            // Show View
-            document.querySelectorAll('.dashboard-view').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
-
-            if (tabId === 'inventory') fetchInventory();
-            if (tabId === 'audit') fetchAuditLogs();
+        function showView(view) {
+            document.getElementById('view-inventory').classList.add('hidden');
+            document.getElementById('view-add').classList.add('hidden');
+            document.getElementById('view-' + view).classList.remove('hidden');
         }
 
-        // 4. INVENTORY LOGIC
-        async function fetchInventory() {
-            const tbody = document.getElementById('inventory-list');
-            const { data: cars, error } = await supabase
-                .from('cars')
-                .select('*')
-                .order('created_at', { ascending: false });
-
+        async function fetchCars() {
+            const list = document.getElementById('car-list');
+            const { data: cars, error } = await supabase.from('cars').select('*');
+            
             if (error) {
-                console.error('Error loading cars:', error);
+                list.innerHTML = `<p class="text-red-500">Error loading cars: ${error.message}</p>`;
                 return;
             }
 
-            tbody.innerHTML = '';
-            if (cars.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">No vehicles found. Add one!</td></tr>`;
+            if (!cars || cars.length === 0) {
+                list.innerHTML = `<p class="text-gray-500 italic">No cars in inventory yet.</p>`;
                 return;
             }
 
-            cars.forEach(car => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-[#151515] transition-colors';
-                tr.innerHTML = `
-                    <td class="px-6 py-4 font-medium text-white">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gray-800 rounded overflow-hidden">
-                                ${car.images && car.images.length > 0 ? `<img src="${car.images[0]}" class="w-full h-full object-cover">` : '<div class="w-full h-full flex items-center justify-center text-xs text-gray-600">No IMG</div>'}
-                            </div>
-                            <div>
-                                <div>${car.year} ${car.brand} ${car.model}</div>
-                                <div class="text-xs text-gray-500">${car.facelift_year ? `(Facelifted to ${car.facelift_year})` : ''}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-[#E60002]">₦${parseInt(car.price).toLocaleString()}</td>
-                    <td class="px-6 py-4 text-gray-400 text-xs">${car.usage_state}</td>
-                    <td class="px-6 py-4 text-right">
-                        <button onclick='editCar(${JSON.stringify(car).replace(/'/g, "&#39;")})' class="text-blue-500 hover:text-blue-400 mr-3"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteCar(${car.id}, '${car.brand} ${car.model}')" class="text-red-500 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // 5. ADD / EDIT CAR LOGIC
-        const carForm = document.getElementById('car-form');
-        
-        function resetForm() {
-            carForm.reset();
-            document.getElementById('edit-car-id').value = '';
-            document.getElementById('form-title').innerText = 'Add New Vehicle';
-            document.getElementById('save-btn').innerHTML = '<i class="fa-solid fa-save mr-2"></i> Save Vehicle';
-            document.getElementById('image-preview-container').innerHTML = '';
-        }
-
-        window.editCar = function(car) {
-            switchTab('add-car');
-            document.getElementById('form-title').innerText = 'Edit Vehicle';
-            document.getElementById('save-btn').innerHTML = '<i class="fa-solid fa-check mr-2"></i> Update Vehicle';
-            
-            document.getElementById('edit-car-id').value = car.id;
-            document.getElementById('brand').value = car.brand;
-            document.getElementById('model').value = car.model;
-            document.getElementById('year').value = car.year;
-            document.getElementById('price').value = car.price;
-            document.getElementById('location').value = car.location;
-            document.getElementById('usage').value = car.usage_state;
-            document.getElementById('facelift').value = car.facelift_year || '';
-            document.getElementById('bio').value = car.bio || '';
-            
-            // Note: We can't pre-fill the file input, but we could show existing images if we had more complex UI code.
-        };
-
-        carForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('save-btn');
-            const originalBtnText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
-            btn.disabled = true;
-
-            const carId = document.getElementById('edit-car-id').value;
-            const fileInput = document.getElementById('image-upload');
-            
-            // 1. Upload Images
-            let imageUrls = []; 
-            // In a real edit scenario, we would need logic to KEEP existing images. 
-            // For this simple version, we append new ones. 
-            // Ideally, you'd fetch the old array if carId exists.
-            
-            if (fileInput.files.length > 0) {
-                for (let file of fileInput.files) {
-                    const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
-                    const { data, error } = await supabase.storage
-                        .from('car-images')
-                        .upload(fileName, file);
-                        
-                    if (!error) {
-                        const { data: { publicUrl } } = supabase.storage.from('car-images').getPublicUrl(fileName);
-                        imageUrls.push(publicUrl);
-                    }
-                }
-            }
-            
-            // For edits, we need to merge old images if no new ones, or handle replacements.
-            // Simplified: If editing and no new images, keep old. If editing AND new images, replace all (or append).
-            // This logic is simplified for the "Novice" request.
-            let finalImages = imageUrls;
-            if (carId && imageUrls.length === 0) {
-                // Fetch existing to keep them
-                const { data } = await supabase.from('cars').select('images').eq('id', carId).single();
-                if (data) finalImages = data.images;
-            }
-
-            const carData = {
-                brand: document.getElementById('brand').value,
-                model: document.getElementById('model').value,
-                year: parseInt(document.getElementById('year').value),
-                price: parseFloat(document.getElementById('price').value),
-                location: document.getElementById('location').value,
-                usage_state: document.getElementById('usage').value,
-                facelift_year: document.getElementById('facelift').value ? parseInt(document.getElementById('facelift').value) : null,
-                bio: document.getElementById('bio').value,
-                images: finalImages,
-                last_edited_by: currentUser.id
-            };
-
-            let error;
-            if (carId) {
-                // Update
-                const res = await supabase.from('cars').update(carData).eq('id', carId);
-                error = res.error;
-                await logAudit('EDIT', `Updated ${carData.year} ${carData.brand} ${carData.model}`);
-            } else {
-                // Create
-                carData.created_by = currentUser.id;
-                const res = await supabase.from('cars').insert([carData]);
-                error = res.error;
-                await logAudit('CREATE', `Added ${carData.year} ${carData.brand} ${carData.model}`);
-            }
-
-            btn.innerHTML = originalBtnText;
-            btn.disabled = false;
-
-            if (error) {
-                alert('Error saving vehicle: ' + error.message);
-            } else {
-                resetForm();
-                switchTab('inventory');
-                alert('Vehicle saved successfully!');
-            }
-        });
-
-        // 6. DELETE LOGIC
-        window.deleteCar = async function(id, name) {
-            if (!confirm(`Are you sure you want to delete the ${name}?`)) return;
-
-            const { error } = await supabase.from('cars').delete().eq('id', id);
-            
-            if (error) {
-                alert('Error deleting: ' + error.message);
-            } else {
-                await logAudit('DELETE', `Deleted ${name}`);
-                fetchInventory();
-            }
-        };
-
-        // 7. AUDIT LOGS
-        async function logAudit(action, details) {
-            await supabase.from('audit_logs').insert([{
-                action: action,
-                details: details,
-                admin_email: currentUser.email
-            }]);
-        }
-
-        async function fetchAuditLogs() {
-            const tbody = document.getElementById('audit-list');
-            const { data, error } = await supabase
-                .from('audit_logs')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(50);
-
-            if (error) return;
-
-            tbody.innerHTML = '';
-            data.forEach(log => {
-                const date = new Date(log.created_at).toLocaleString();
-                let colorClass = 'text-blue-400';
-                if (log.action === 'DELETE') colorClass = 'text-red-500';
-                if (log.action === 'CREATE') colorClass = 'text-green-500';
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-[#151515]">
-                        <td class="px-6 py-4 text-gray-500 text-xs">${date}</td>
-                        <td class="px-6 py-4 ${colorClass} font-bold text-xs">${log.action}</td>
-                        <td class="px-6 py-4 text-gray-400 text-xs">${log.admin_email}</td>
-                        <td class="px-6 py-4 text-gray-300 text-sm">${log.details}</td>
-                    </tr>
-                `;
-            });
+            list.innerHTML = cars.map(car => `
+                <div class="bg-[#111] border border-gray-800 rounded p-4">
+                    <h3 class="font-bold">${car.year} ${car.brand} ${car.model}</h3>
+                    <p class="text-red-500 font-bold">₦${Number(car.price).toLocaleString()}</p>
+                    <p class="text-xs text-gray-500">${car.location} | ${car.usage_state}</p>
+                </div>
+            `).join('');
         }
     </script>
 </body>
