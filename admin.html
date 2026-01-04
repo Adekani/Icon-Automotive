@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Icon Automotive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @font-face { font-family: 'Orenburg'; src: 'Orenburg.ttf' format('truetype'); }
+        :root { --brand-red: #E60002; --brand-dark: #0a0a0a; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--brand-dark); color: #fff; }
+        .font-heading { font-family: 'Orenburg', serif; }
+        
+        /* Dashboard specific styles */
+        .sidebar-link.active { background: #E60002; color: white; }
+        .sidebar-link:hover:not(.active) { background: rgba(255,255,255,0.05); }
+        
+        /* Table Styles */
+        td, th { padding: 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+        /* Modal */
+        .modal { transition: opacity 0.3s ease; }
+        .modal.hidden { pointer-events: none; opacity: 0; }
+        .modal:not(.hidden) { opacity: 1; pointer-events: auto; }
+
+        input, select, textarea {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            margin-top: 0.25rem;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #E60002;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-[#0a0a0a] flex items-center justify-center">
+        <div class="bg-[#111] p-10 border border-white/10 rounded-sm w-full max-w-md text-center">
+            <h1 class="text-3xl font-heading mb-2">ADMIN LOGIN</h1>
+            <p class="text-gray-400 text-sm mb-8">Icon Automotive Management</p>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <input type="email" id="email" placeholder="admin@iconautomotive.com" required>
+                </div>
+                <button type="submit" class="w-full bg-[#E60002] hover:bg-red-700 py-3 font-bold tracking-widest transition-colors">
+                    SEND MAGIC LINK
+                </button>
+            </form>
+            <p id="login-msg" class="mt-4 text-sm text-gray-400"></p>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-[#111] border-r border-white/5 flex flex-col hidden" id="sidebar">
+        <div class="p-6 border-b border-white/5">
+            <h1 class="text-2xl font-heading text-[#E60002]">ICON ADMIN</h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="showPage('dashboard')" class="sidebar-link active w-full text-left px-4 py-3 rounded-sm flex items-center gap-3">
+                <i class="fas fa-car"></i> Listings
+            </button>
+            <button onclick="showPage('audit')" class="sidebar-link w-full text-left px-4 py-3 rounded-sm flex items-center gap-3">
+                <i class="fas fa-history"></i> Audit Log
+            </button>
+        </nav>
+        <div class="p-4 border-t border-white/5">
+            <div class="text-xs text-gray-500 mb-2">Logged in as:</div>
+            <div id="user-email" class="text-sm truncate mb-4 font-bold">...</div>
+            <button onclick="handleLogout()" class="w-full py-2 border border-white/20 hover:bg-white/5 text-xs tracking-widest">LOGOUT</button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto bg-[#0a0a0a] relative hidden" id="main-content">
+        
+        <!-- DASHBOARD PAGE -->
+        <div id="page-dashboard" class="p-8">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-3xl font-heading">VEHICLE LISTINGS</h2>
+                    <p class="text-gray-400 text-sm mt-1">Manage your inventory</p>
+                </div>
+                <button onclick="openCarModal()" class="bg-[#E60002] hover:bg-red-700 px-6 py-3 font-bold text-sm tracking-widest flex items-center gap-2">
+                    <i class="fas fa-plus"></i> ADD VEHICLE
+                </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="flex gap-4 mb-6">
+                <input type="text" id="search-cars" placeholder="Search by Brand or Model..." class="max-w-xs" onkeyup="filterCars()">
+                <select id="filter-status" class="max-w-[150px]" onchange="filterCars()">
+                    <option value="">All Conditions</option>
+                    <option value="Foreign Used">Foreign Used</option>
+                    <option value="Nigerian Used">Nigerian Used</option>
+                    <option value="Brand New">Brand New</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <div class="bg-[#111] border border-white/5 rounded-sm overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-gray-500 uppercase text-xs tracking-wider bg-white/5">
+                            <th class="w-24">Image</th>
+                            <th>Brand / Model</th>
+                            <th>Year</th>
+                            <th>Price (₦)</th>
+                            <th>Status</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cars-table-body">
+                        <!-- JS Injected -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- AUDIT PAGE -->
+        <div id="page-audit" class="p-8 hidden">
+            <h2 class="text-3xl font-heading mb-8">AUDIT LOG <span class="text-gray-500 text-lg font-sans ml-2">(Last 14 Days)</span></h2>
+            <div class="bg-[#111] border border-white/5 rounded-sm overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-gray-500 uppercase text-xs tracking-wider bg-white/5">
+                            <th>Time</th>
+                            <th>Action</th>
+                            <th>Admin</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-table-body">
+                        <!-- JS Injected -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- CAR MODAL (Add/Edit) -->
+    <div id="car-modal" class="modal fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 hidden">
+        <div class="bg-[#111] w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-white/10 rounded-sm shadow-2xl relative">
+            
+            <div class="sticky top-0 bg-[#111] p-6 border-b border-white/10 flex justify-between items-center z-10">
+                <h3 class="text-xl font-heading" id="modal-title">ADD NEW VEHICLE</h3>
+                <button onclick="closeCarModal()" class="text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            </div>
+
+            <form id="car-form" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Hidden ID -->
+                <input type="hidden" id="car-id">
+
+                <!-- Left Col -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs uppercase text-gray-500">Brand</label>
+                        <input type="text" id="brand" required placeholder="e.g. Mercedes-Benz">
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase text-gray-500">Model</label>
+                        <input type="text" id="model" required placeholder="e.g. G63 AMG">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs uppercase text-gray-500">Year</label>
+                            <input type="number" id="year" required placeholder="2022">
+                        </div>
+                        <div>
+                            <label class="text-xs uppercase text-gray-500">Facelift Year (Optional)</label>
+                            <input type="number" id="facelift_year" placeholder="e.g. 2024">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase text-gray-500">Price (₦)</label>
+                        <input type="number" id="price" required placeholder="e.g. 250000000">
+                    </div>
+                </div>
+
+                <!-- Right Col -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs uppercase text-gray-500">Condition</label>
+                        <select id="usage_state" required>
+                            <option value="Foreign Used">Foreign Used</option>
+                            <option value="Nigerian Used">Nigerian Used</option>
+                            <option value="Brand New">Brand New</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase text-gray-500">Location</label>
+                        <input type="text" id="location" required placeholder="e.g. Lekki, Lagos">
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase text-gray-500">Description (Bio)</label>
+                        <textarea id="bio" rows="4" required placeholder="Vehicle details..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Image Upload Section -->
+                <div class="col-span-1 md:col-span-2 border-t border-white/10 pt-6">
+                    <label class="text-xs uppercase text-gray-500 mb-2 block">Images</label>
+                    
+                    <!-- Existing Images Container -->
+                    <div id="existing-images" class="flex flex-wrap gap-2 mb-4"></div>
+
+                    <!-- Upload Input -->
+                    <div class="border border-dashed border-gray-600 rounded-sm p-8 text-center hover:border-[#E60002] transition-colors cursor-pointer relative">
+                        <input type="file" id="image-upload" multiple accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewFiles()">
+                        <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
+                        <p class="text-sm text-gray-400">Click to upload or drag and drop</p>
+                    </div>
+                    <div id="preview-container" class="flex flex-wrap gap-2 mt-4"></div>
+                </div>
+
+                <div class="col-span-1 md:col-span-2 pt-4">
+                    <button type="submit" id="save-btn" class="w-full bg-[#E60002] hover:bg-red-700 py-4 font-bold tracking-widest transition-colors">
+                        SAVE LISTING
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURATION
+        const SUPABASE_URL = 'https://dpzvjsfgilnuzedghfww.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwenZqc2ZnaWxudXplZGdoZnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MjUyMTcsImV4cCI6MjA4MzEwMTIxN30.KjnG8hVXcWshG1XIDOrWEnM1ITiLT2Nzu3b1Z1ix-8Q';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // STATE
+        let currentUser = null;
+        let allCars = [];
+        let currentImages = []; // Stores URLs of existing images for edit
+        let filesToUpload = []; // Stores File objects
+
+        // --- INIT ---
+        window.addEventListener('load', async () => {
+            // Check Session
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                handleLoginSuccess(session.user);
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+            }
+
+            // Auth State Change Listener
+            supabase.auth.onAuthStateChange((_event, session) => {
+                if (session) handleLoginSuccess(session.user);
+                else {
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('sidebar').classList.add('hidden');
+                    document.getElementById('main-content').classList.add('hidden');
+                }
+            });
+        });
+
+        // --- AUTH ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('login-msg');
+            
+            btn.disabled = true;
+            btn.innerText = "SENDING...";
+
+            const { error } = await supabase.auth.signInWithOtp({ email });
+
+            if (error) {
+                msg.innerText = "Error: " + error.message;
+                msg.className = "mt-4 text-sm text-red-500";
+                btn.disabled = false;
+                btn.innerText = "SEND MAGIC LINK";
+            } else {
+                msg.innerText = "Check your email for the login link!";
+                msg.className = "mt-4 text-sm text-green-500";
+            }
+        });
+
+        async function handleLoginSuccess(user) {
+            currentUser = user;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('sidebar').classList.remove('hidden'); // Ensure flex is applied if needed, usually just removing hidden is enough
+            document.getElementById('sidebar').classList.add('flex'); // Add flex class back
+            document.getElementById('user-email').innerText = user.email;
+            
+            fetchCars();
+            fetchAuditLog();
+        }
+
+        async function handleLogout() {
+            await supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        // --- NAVIGATION ---
+        window.showPage = (pageId) => {
+            document.getElementById('page-dashboard').classList.add('hidden');
+            document.getElementById('page-audit').classList.add('hidden');
+            document.getElementById(`page-${pageId}`).classList.remove('hidden');
+            
+            // Update Sidebar Active State
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            if(pageId === 'dashboard') document.querySelectorAll('.sidebar-link')[0].classList.add('active');
+            if(pageId === 'audit') document.querySelectorAll('.sidebar-link')[1].classList.add('active');
+        };
+
+        // --- CARS CRUD ---
+        async function fetchCars() {
+            const { data, error } = await supabase.from('cars').select('*').order('created_at', { ascending: false });
+            if (error) console.error(error);
+            else {
+                allCars = data;
+                renderCarsTable(allCars);
+            }
+        }
+
+        function renderCarsTable(cars) {
+            const tbody = document.getElementById('cars-table-body');
+            tbody.innerHTML = '';
+            
+            cars.forEach(car => {
+                const imgUrl = car.images && car.images.length > 0 ? car.images[0] : 'https://via.placeholder.com/100?text=No+Img';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${imgUrl}" class="w-16 h-12 object-cover rounded-sm"></td>
+                    <td>
+                        <div class="font-bold text-white">${car.brand} ${car.model}</div>
+                        <div class="text-xs text-gray-500">ID: ${car.id}</div>
+                    </td>
+                    <td>${car.year}</td>
+                    <td class="text-[#E60002]">₦${car.price.toLocaleString()}</td>
+                    <td><span class="bg-white/10 px-2 py-1 rounded text-xs">${car.usage_state}</span></td>
+                    <td class="text-right">
+                        <button onclick="editCar(${car.id})" class="text-blue-400 hover:text-white mr-3"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteCar(${car.id})" class="text-red-500 hover:text-white"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterCars() {
+            const txt = document.getElementById('search-cars').value.toLowerCase();
+            const status = document.getElementById('filter-status').value;
+            
+            const filtered = allCars.filter(c => {
+                const matchTxt = c.brand.toLowerCase().includes(txt) || c.model.toLowerCase().includes(txt);
+                const matchStatus = status ? c.usage_state === status : true;
+                return matchTxt && matchStatus;
+            });
+            renderCarsTable(filtered);
+        }
+
+        // --- MODAL & FORM ---
+        function openCarModal(carId = null) {
+            const modal = document.getElementById('car-modal');
+            const form = document.getElementById('car-form');
+            const title = document.getElementById('modal-title');
+            
+            // Reset
+            form.reset();
+            document.getElementById('existing-images').innerHTML = '';
+            document.getElementById('preview-container').innerHTML = '';
+            currentImages = [];
+            filesToUpload = [];
+            
+            if (carId) {
+                // Edit Mode
+                const car = allCars.find(c => c.id === carId);
+                title.innerText = "EDIT VEHICLE";
+                document.getElementById('car-id').value = car.id;
+                document.getElementById('brand').value = car.brand;
+                document.getElementById('model').value = car.model;
+                document.getElementById('year').value = car.year;
+                document.getElementById('facelift_year').value = car.facelift_year || '';
+                document.getElementById('price').value = car.price;
+                document.getElementById('usage_state').value = car.usage_state;
+                document.getElementById('location').value = car.location;
+                document.getElementById('bio').value = car.bio;
+                
+                // Load Images
+                currentImages = car.images || [];
+                renderExistingImages();
+            } else {
+                // Add Mode
+                title.innerText = "ADD NEW VEHICLE";
+                document.getElementById('car-id').value = "";
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeCarModal() {
+            document.getElementById('car-modal').classList.add('hidden');
+        }
+
+        // --- IMAGE HANDLING ---
+        function renderExistingImages() {
+            const container = document.getElementById('existing-images');
+            container.innerHTML = '';
+            currentImages.forEach((url, idx) => {
+                const div = document.createElement('div');
+                div.className = "relative w-20 h-20 group";
+                div.innerHTML = `
+                    <img src="${url}" class="w-full h-full object-cover rounded-sm border border-white/20">
+                    <button type="button" onclick="removeExistingImage(${idx})" class="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function removeExistingImage(index) {
+            if(confirm("Remove this image? It will be deleted on Save.")) {
+                currentImages.splice(index, 1);
+                renderExistingImages();
+            }
+        }
+
+        function previewFiles() {
+            const input = document.getElementById('image-upload');
+            const container = document.getElementById('preview-container');
+            
+            Array.from(input.files).forEach(file => {
+                filesToUpload.push(file);
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = "relative w-20 h-20";
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-full object-cover rounded-sm opacity-50 border border-dashed border-white">
+                        <span class="absolute inset-0 flex items-center justify-center text-[10px] text-white font-bold">NEW</span>
+                    `;
+                    container.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // --- SUBMIT ---
+        document.getElementById('car-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('save-btn');
+            btn.innerText = "SAVING...";
+            btn.disabled = true;
+
+            try {
+                // 1. Upload New Images
+                let newImageUrls = [];
+                for (const file of filesToUpload) {
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name.replace(/\s+/g, '-')}`;
+                    const { data, error } = await supabase.storage.from('car-images').upload(fileName, file);
+                    if (error) throw error;
+                    
+                    const { data: { publicUrl } } = supabase.storage.from('car-images').getPublicUrl(fileName);
+                    newImageUrls.push(publicUrl);
+                }
+
+                // 2. Combine Images
+                const finalImages = [...currentImages, ...newImageUrls];
+
+                // 3. Prepare Data
+                const carId = document.getElementById('car-id').value;
+                const carData = {
+                    brand: document.getElementById('brand').value,
+                    model: document.getElementById('model').value,
+                    year: parseInt(document.getElementById('year').value),
+                    facelift_year: document.getElementById('facelift_year').value ? parseInt(document.getElementById('facelift_year').value) : null,
+                    price: parseFloat(document.getElementById('price').value),
+                    usage_state: document.getElementById('usage_state').value,
+                    location: document.getElementById('location').value,
+                    bio: document.getElementById('bio').value,
+                    images: finalImages,
+                    // Track editors
+                    last_edited_by: currentUser.id
+                };
+
+                let error;
+                if (carId) {
+                    // Update
+                    const { error: err } = await supabase.from('cars').update(carData).eq('id', carId);
+                    error = err;
+                    
+                    // Log Audit
+                    await logAudit('EDIT', `Updated ${carData.brand} ${carData.model}`);
+                } else {
+                    // Insert
+                    carData.created_by = currentUser.id;
+                    const { error: err } = await supabase.from('cars').insert([carData]);
+                    error = err;
+                    
+                    // Log Audit
+                    await logAudit('CREATE', `Created ${carData.brand} ${carData.model}`);
+                }
+
+                if (error) throw error;
+
+                closeCarModal();
+                fetchCars();
+                fetchAuditLog();
+                alert('Success!');
+
+            } catch (err) {
+                console.error(err);
+                alert("Error saving: " + err.message);
+            } finally {
+                btn.innerText = "SAVE LISTING";
+                btn.disabled = false;
+            }
+        });
+
+        // --- DELETE ---
+        async function deleteCar(id) {
+            if (!confirm("Are you sure? This cannot be undone.")) return;
+            
+            const car = allCars.find(c => c.id === id);
+            
+            const { error } = await supabase.from('cars').delete().eq('id', id);
+            if (error) {
+                alert("Error deleting: " + error.message);
+            } else {
+                await logAudit('DELETE', `Deleted ${car.brand} ${car.model} (ID: ${id})`);
+                fetchCars();
+                fetchAuditLog();
+            }
+        }
+
+        // --- AUDIT LOGGING ---
+        async function logAudit(action, details) {
+            await supabase.from('audit_logs').insert([{
+                action: action,
+                details: details,
+                admin_email: currentUser.email
+            }]);
+        }
+
+        async function fetchAuditLog() {
+            const { data, error } = await supabase
+                .from('audit_logs')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(50); // Last 50 actions
+
+            if (!error) {
+                const tbody = document.getElementById('audit-table-body');
+                tbody.innerHTML = '';
+                data.forEach(log => {
+                    const date = new Date(log.created_at).toLocaleString();
+                    const color = log.action === 'DELETE' ? 'text-red-500' : (log.action === 'CREATE' ? 'text-green-500' : 'text-blue-400');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="text-gray-500 text-xs">${date}</td>
+                            <td class="${color} font-bold text-xs">${log.action}</td>
+                            <td>${log.admin_email}</td>
+                            <td class="text-gray-400">${log.details}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+    </script>
+</body>
+  </html>
