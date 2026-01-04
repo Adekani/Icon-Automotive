@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Details | Icon Automotive</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @font-face { font-family: 'Orenburg'; src: url('Orenburg.ttf') format('truetype'); }
@@ -34,7 +35,7 @@
         <!-- Left Column: Gallery (Span 2) -->
         <div class="lg:col-span-2">
             <!-- Main Display -->
-            <div class="relative w-full aspect-[4/3] bg-[#111] group overflow-hidden md:rounded-sm">
+            <div class="relative w-full aspect-square bg-[#111] group overflow-hidden md:rounded-sm">
                 <img id="main-image" src="" alt="Car Main" class="w-full h-full object-cover transition-transform duration-500 cursor-zoom-in" onclick="expandImage()">
                 <div class="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/10 to-transparent"></div>
             </div>
@@ -84,7 +85,10 @@
 
     <script>
         // Data Logic
-        
+        const SUPABASE_URL = 'https://dpzvjsfgilnuzedghfww.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwenZqc2ZnaWxudXplZGdoZnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MjUyMTcsImV4cCI6MjA4MzEwMTIxN30.KjnG8hVXcWshG1XIDOrWEnM1ITiLT2Nzu3b1Z1ix-8Q';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         // --- NEW: Header Logic Function ---
         function initHeaderLogic() {
             const btn = document.getElementById('mobile-menu-btn');
@@ -127,13 +131,28 @@
                     return;
                 }
 
-                // Fetch Car
-                const res = await fetch('cars.json');
-                const cars = await res.json();
-                const car = cars.find(c => c.id == carId);
+                // Fetch Car from Supabase
+                // We use .single() because we expect exactly one result for an ID
+                const { data: carData, error } = await supabase
+                .from('cars')
+                .select('*')
+                .eq('id', carId)
+                .single();
+                if (error || !carData) {
+                    console.error('Error fetching car:', error);
+                    alert('Car not found');
+                    window.location.href = 'catalog.html';
+                    return;
+                }
 
-                if (car) renderCar(car);
-                else alert('Car not found');
+                // Map snake_case (database) to camelCase (frontend)
+                const car = {
+                    ...carData,
+                    usageState: carData.usage_state,
+                    faceliftYear: carData.facelift_year
+                };
+
+                renderCar(car);
 
                 document.getElementById('loader').classList.add('hidden');
                 document.getElementById('car-content').classList.remove('opacity-0');
@@ -190,6 +209,4 @@
         window.addEventListener('load', initPage);
     </script>
 </body>
-
 </html>
-
