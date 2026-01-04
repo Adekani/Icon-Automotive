@@ -52,13 +52,23 @@
             
             <form id="login-form" class="space-y-4">
                 <div>
-                    <input type="email" id="email" placeholder="admin@iconautomotive.com" required>
+                    <input type="email" id="email" placeholder="Email Address" class="w-full bg-white/5 border border-white/10 p-3 rounded" required>
                 </div>
-                <button type="submit" class="w-full bg-[#E60002] hover:bg-red-700 py-3 font-bold tracking-widest transition-colors">
-                    SEND MAGIC LINK
-                </button>
+                <!-- ADDED PASSWORD FIELD HERE -->
+                <div>
+                    <input type="password" id="password" placeholder="Password (Optional for Magic Link)" class="w-full bg-white/5 border border-white/10 p-3 rounded">
+                </div>
+                
+                <div class="flex flex-col gap-3">
+                    <button type="submit" id="login-btn" class="w-full bg-[#E60002] hover:bg-red-700 py-3 font-bold tracking-widest transition-colors">
+                        LOGIN WITH PASSWORD
+                    </button>
+                    <button type="button" onclick="sendMagicLink()" id="magic-btn" class="w-full bg-white/5 hover:bg-white/10 py-3 text-xs font-bold tracking-widest transition-colors text-white">
+                        SEND MAGIC LINK INSTEAD
+                    </button>
+                </div>
             </form>
-            <p id="login-msg" class="mt-4 text-sm text-gray-400"></p>
+            <p id="login-msg" class="mt-4 text-sm"></p>
         </div>
     </div>
 
@@ -251,15 +261,17 @@
             // Check Session
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
-                handleLoginSuccess(session.user);
+                // If session exists, verify admin
+                checkAdminAndLogin(session.user);
             } else {
                 document.getElementById('login-screen').classList.remove('hidden');
             }
 
-            // Auth State Change Listener
-            supabase.auth.onAuthStateChange((_event, session) => {
-                if (session) handleLoginSuccess(session.user);
-                else {
+            // Auth Listener
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                if (session) {
+                    checkAdminAndLogin(session.user);
+                } else {
                     document.getElementById('login-screen').classList.remove('hidden');
                     document.getElementById('sidebar').classList.add('hidden');
                     document.getElementById('main-content').classList.add('hidden');
@@ -267,46 +279,67 @@
             });
         });
 
-        // --- AUTH ---
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const btn = e.target.querySelector('button');
-            const msg = document.getElementById('login-msg');
-            
-            btn.disabled = true;
-            btn.innerText = "SENDING...";
+        // --- AUTH FUNCTIONS ---
 
-            const { error } = await supabase.auth.signInWithOtp({ email });
-
-            if (error) {
-                msg.innerText = "Error: " + error.message;
-                msg.className = "mt-4 text-sm text-red-500";
-                btn.disabled = false;
-                btn.innerText = "SEND MAGIC LINK";
-            } else {
-                msg.innerText = "Check your email for the login link!";
-                msg.className = "mt-4 text-sm text-green-500";
+        async function checkAdminAndLogin(user) {
+            const { data, error } = await supabase.from('allowed_admins').select('email').eq('email', user.email).single();
+            if (error || !data) {
+                alert("Unauthorized: Your email is not on the admin list.");
+                await supabase.auth.signOut();
+                return;
             }
-        });
+            handleLoginSuccess(user);
+        }
 
         async function handleLoginSuccess(user) {
             currentUser = user;
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('sidebar').classList.add('flex'); // Ensure flex is restored
             document.getElementById('main-content').classList.remove('hidden');
-            document.getElementById('sidebar').classList.remove('hidden'); // Ensure flex is applied if needed, usually just removing hidden is enough
-            document.getElementById('sidebar').classList.add('flex'); // Add flex class back
             document.getElementById('user-email').innerText = user.email;
             
             fetchCars();
             fetchAuditLog();
         }
 
+        async function sendMagicLink() {
+            const email = document.getElementById('email').value;
+            const msg = document.getElementById('login-msg');
+            if(!email) return alert("Please enter your email");
+            
+            msg.innerText = "Sending magic link...";
+            const { error } = await supabase.auth.signInWithOtp({ 
+                email,
+                // THIS FIXES THE REDIRECT ISSUE
+                options: { emailRedirectTo: window.location.href }
+            });
+            
+            if(error) { msg.innerText = error.message; msg.style.color = 'red'; }
+            else { msg.innerText = "Link sent! Check your inbox."; msg.style.color = '#22c55e'; }
+        }
+
         async function handleLogout() {
             await supabase.auth.signOut();
             window.location.reload();
         }
+
+        // Form Submission (Handles Password)
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if(!password) {
+                // No password typed? Try Magic Link
+                sendMagicLink();
+                return;
+            }
+
+            // Password typed? Try Password Login
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if(error) alert("Login error: " + error.message);
+        });
 
         // --- NAVIGATION ---
         window.showPage = (pageId) => {
@@ -575,4 +608,4 @@
         }
     </script>
 </body>
-  </html>
+    </html>
