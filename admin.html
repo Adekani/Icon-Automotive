@@ -215,23 +215,26 @@
     <script>
         const SUPABASE_URL = 'https://dpzvjsfgilnuzedghfww.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwenZqc2ZnaWxudXplZGdoZnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MjUyMTcsImV4cCI6MjA4MzEwMTIxN30.KjnG8hVXcWshG1XIDOrWEnM1ITiLT2Nzu3b1Z1ix-8Q';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // RENAMED TO supabaseClient TO PREVENT CONFLICTS
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
-        let currentImages = []; // Stores URLs for the car being edited
+        let currentImages = []; 
         let deleteTargetId = null;
 
         // --- INIT & AUTH ---
         async function init() {
-            const { data: { session } } = await supabase.auth.getSession();
+            // Updated call
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) {
                 window.location.href = 'admin-login.html';
                 return;
             }
             currentUser = session.user;
             
-            // Fetch Profile
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+            // Updated call
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
             if (profile) {
                 document.getElementById('admin-name').innerText = profile.username || profile.email;
                 document.getElementById('profile-email').value = profile.email;
@@ -244,12 +247,9 @@
 
         // --- NAVIGATION ---
         function switchTab(tab) {
-            // Hide all sections
             ['view-inventory', 'view-audit', 'view-profile'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            // Show target
             document.getElementById(`view-${tab}`).classList.remove('hidden');
             
-            // Update buttons (Desk & Mob)
             document.querySelectorAll('.nav-btn').forEach(b => {
                 b.classList.remove('nav-active', 'text-white', 'bg-white/5');
                 b.classList.add('text-gray-400');
@@ -261,7 +261,7 @@
         }
 
         async function logout() {
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             window.location.href = 'admin-login.html';
         }
 
@@ -270,7 +270,8 @@
             const tbody = document.getElementById('cars-table-body');
             tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">Loading...</td></tr>';
 
-            const { data, error } = await supabase.from('cars').select('*').order('created_at', { ascending: false });
+            // Updated call
+            const { data, error } = await supabaseClient.from('cars').select('*').order('created_at', { ascending: false });
             
             if (error) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-red-500 p-4">Error: ${error.message}</td></tr>`;
@@ -301,7 +302,6 @@
                 tbody.appendChild(row);
             });
             
-            // Simple Search
             document.getElementById('search-input').onkeyup = function(e) {
                 const term = e.target.value.toLowerCase();
                 Array.from(tbody.children).forEach(row => {
@@ -330,7 +330,6 @@
             document.getElementById('modal-title').innerText = 'Edit Vehicle';
             document.getElementById('edit-id').value = car.id;
             
-            // Populate Fields
             document.getElementById('inp-brand').value = car.brand;
             document.getElementById('inp-model').value = car.model;
             document.getElementById('inp-year').value = car.year;
@@ -344,7 +343,6 @@
             renderImagePreview();
         }
 
-        // Image Handling
         function renderImagePreview() {
             const area = document.getElementById('image-preview-area');
             area.innerHTML = '';
@@ -375,23 +373,22 @@
             
             for (let file of files) {
                 const fileName = `${Date.now()}-${Math.floor(Math.random()*1000)}`;
-                const { data, error } = await supabase.storage.from('car-images').upload(fileName, file);
+                // Updated call
+                const { data, error } = await supabaseClient.storage.from('car-images').upload(fileName, file);
                 
                 if (error) {
                     console.error(error);
                     alert(`Upload failed: ${error.message}`);
                 } else {
-                    // Get Public URL
-                    const { data: { publicUrl } } = supabase.storage.from('car-images').getPublicUrl(fileName);
+                    const { data: { publicUrl } } = supabaseClient.storage.from('car-images').getPublicUrl(fileName);
                     currentImages.push(publicUrl);
                 }
             }
             status.innerText = 'Upload complete.';
             renderImagePreview();
-            input.value = ''; // Reset
+            input.value = '';
         }
 
-        // Save Form
         document.getElementById('car-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
@@ -409,18 +406,17 @@
                 updated_at: new Date()
             };
 
-            // If creating new, add created_by
             if (!id) payload.created_by = currentUser.id;
             payload.updated_by = currentUser.id;
 
             let error;
             if (id) {
-                // Update
-                const res = await supabase.from('cars').update(payload).eq('id', id);
+                // Updated call
+                const res = await supabaseClient.from('cars').update(payload).eq('id', id);
                 error = res.error;
             } else {
-                // Insert
-                const res = await supabase.from('cars').insert([payload]);
+                // Updated call
+                const res = await supabaseClient.from('cars').insert([payload]);
                 error = res.error;
             }
 
@@ -432,7 +428,6 @@
             }
         });
 
-        // --- DELETE LOGIC ---
         function askDelete(id) {
             deleteTargetId = id;
             document.getElementById('delete-modal').classList.remove('hidden');
@@ -440,8 +435,8 @@
 
         document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
             if (!deleteTargetId) return;
-            // The trigger defined in SQL will handle the Audit Log entry automatically
-            const { error } = await supabase.from('cars').delete().eq('id', deleteTargetId);
+            // Updated call
+            const { error } = await supabaseClient.from('cars').delete().eq('id', deleteTargetId);
             
             if (error) alert('Delete failed: ' + error.message);
             else {
@@ -450,17 +445,17 @@
             }
         });
 
-        // --- AUDIT LOGIC ---
+        // --- AUDIT LOGIC (Updated for app_audit_logs) ---
         async function loadAuditLogs() {
             const container = document.getElementById('deletion-logs');
             container.innerHTML = '<p class="animate-pulse">Loading logs...</p>';
 
-            // 14 Days ago
             const date = new Date();
             date.setDate(date.getDate() - 14);
 
-            const { data, error } = await supabase
-                .from('audit_logs')
+            // Updated table name to app_audit_logs
+            const { data, error } = await supabaseClient
+                .from('app_audit_logs')
                 .select('*')
                 .eq('action', 'DELETE')
                 .gt('timestamp', date.toISOString())
@@ -494,12 +489,12 @@
             }).join('');
         }
 
-        // --- PROFILE LOGIC ---
         async function updateProfile() {
             const newName = document.getElementById('profile-username').value;
             if (newName.length < 3) return alert('Username must be 3+ characters');
             
-            const { error } = await supabase.from('profiles').update({ username: newName }).eq('id', currentUser.id);
+            // Updated call
+            const { error } = await supabaseClient.from('profiles').update({ username: newName }).eq('id', currentUser.id);
             if (error) alert(error.message);
             else alert('Profile updated');
         }
