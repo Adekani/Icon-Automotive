@@ -4,684 +4,507 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | Icon Automotive</title>
-    
-    <!-- LIBRARIES -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- FONTS & STYLES -->
     <style>
-        @font-face { font-family: 'Orenburg'; src: 'Orenburg.ttf' format('truetype'); }
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap');
-
-        :root { 
-            --brand-red: #E60002; 
-            --brand-dark: #050505; 
-            --brand-panel: #0F0F0F;
-        }
-        
-        body { 
-            font-family: 'Montserrat', sans-serif; 
-            background-color: var(--brand-dark); 
-            color: #e5e5e5; 
-            overflow: hidden; /* Prevent body scroll, handle in containers */
-        }
-        
+        @font-face { font-family: 'Orenburg'; src: url('Orenburg.ttf') format('truetype'); }
+        :root { --brand-red: #E60002; --brand-dark: #0a0a0a; }
+        body { font-family: 'Montserrat', sans-serif; background-color: #000; color: #eee; }
         .font-heading { font-family: 'Orenburg', serif; }
         
-        /* CUSTOM UI ELEMENTS */
-        .glass-panel {
-            background: rgba(15, 15, 15, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        /* Custom UI Tweaks */
+        .nav-active { border-bottom: 2px solid #E60002; color: white; }
+        .table-row-hover:hover { background-color: rgba(255,255,255,0.03); }
         
-        .nav-item {
-            border-left: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-        .nav-item.active {
-            border-left-color: var(--brand-red);
-            background: linear-gradient(90deg, rgba(230,0,2,0.1) 0%, transparent 100%);
-            color: white;
-        }
-        .nav-item:hover:not(.active) {
-            background: rgba(255,255,255,0.03);
-            color: white;
-        }
-
-        .brand-input {
-            background: #151515;
-            border: 1px solid #333;
-            color: white;
-            transition: border-color 0.3s;
-        }
-        .brand-input:focus {
-            border-color: var(--brand-red);
-            outline: none;
-        }
-
-        /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--brand-dark); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--brand-red); }
-
-        /* LOADING SPINNER */
-        .loader {
-            border: 3px solid rgba(255,255,255,0.1);
-            border-radius: 50%;
-            border-top: 3px solid var(--brand-red);
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
+        /* Loading Spinner */
+        .loader { border: 2px solid #333; border-top: 2px solid #E60002; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="flex flex-col h-screen">
+<body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- =======================================================================
-         SECTION 1: LOGIN OVERLAY
-         ======================================================================= -->
-    <div id="login-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-[url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center">
-        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+    <!-- AUTH LOADER -->
+    <div id="auth-loading" class="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div class="loader w-10 h-10"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="h-16 bg-[#111] border-b border-white/10 flex items-center justify-between px-6 shrink-0">
+        <div class="flex items-center gap-4">
+            <span class="font-heading text-xl tracking-wide">DASHBOARD</span>
+        </div>
+        <div class="flex items-center gap-4 text-sm">
+            <span id="admin-name" class="hidden md:block text-gray-400">Admin</span>
+            <button onclick="logout()" class="text-[#E60002] hover:text-white transition-colors"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </header>
+
+    <!-- MOBILE TABS -->
+    <nav class="md:hidden flex justify-around bg-[#111] border-b border-white/5 text-xs">
+        <button onclick="switchTab('inventory')" id="tab-mob-inventory" class="nav-btn py-3 px-4 text-gray-400 nav-active">INVENTORY</button>
+        <button onclick="switchTab('audit')" id="tab-mob-audit" class="nav-btn py-3 px-4 text-gray-400">AUDIT</button>
+        <button onclick="switchTab('profile')" id="tab-mob-profile" class="nav-btn py-3 px-4 text-gray-400">PROFILE</button>
+    </nav>
+
+    <!-- MAIN LAYOUT -->
+    <div class="flex flex-1 overflow-hidden">
         
-        <div class="relative z-10 w-full max-w-md p-8 glass-panel rounded-lg shadow-2xl border-t border-red-900/30">
-            <div class="text-center mb-8">
-                <h1 class="font-heading text-4xl text-white tracking-widest">ICON <span class="text-[#E60002]">ADMIN</span></h1>
-                <p class="text-gray-500 text-xs uppercase tracking-[0.2em] mt-2">Secure Access Portal</p>
+        <!-- DESKTOP SIDEBAR -->
+        <aside class="hidden md:flex flex-col w-64 bg-[#050505] border-r border-white/5 p-4 space-y-2">
+            <button onclick="switchTab('inventory')" id="tab-desk-inventory" class="nav-btn flex items-center gap-3 p-3 rounded-sm hover:bg-white/5 text-left text-sm text-gray-300 nav-active">
+                <i class="fas fa-car w-5"></i> Inventory
+            </button>
+            <button onclick="switchTab('audit')" id="tab-desk-audit" class="nav-btn flex items-center gap-3 p-3 rounded-sm hover:bg-white/5 text-left text-sm text-gray-300">
+                <i class="fas fa-history w-5"></i> Audit Logs
+            </button>
+            <button onclick="switchTab('profile')" id="tab-desk-profile" class="nav-btn flex items-center gap-3 p-3 rounded-sm hover:bg-white/5 text-left text-sm text-gray-300">
+                <i class="fas fa-user-cog w-5"></i> My Profile
+            </button>
+        </aside>
+
+        <!-- CONTENT AREA -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-8 relative">
+
+            <!-- 1. INVENTORY VIEW -->
+            <section id="view-inventory" class="space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-heading">Vehicle List</h2>
+                    <button onclick="openEditor()" class="bg-[#E60002] hover:bg-red-700 text-white px-4 py-2 rounded-sm text-sm font-bold shadow-lg shadow-red-900/20">
+                        <i class="fas fa-plus mr-2"></i> ADD NEW
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="search-input" placeholder="Search Brand or Model..." class="bg-[#111] border border-white/10 text-white px-3 py-2 rounded-sm text-sm w-full max-w-xs focus:border-[#E60002] outline-none">
+                </div>
+
+                <div class="overflow-x-auto bg-[#111] border border-white/5 rounded-sm">
+                    <table class="w-full text-left text-sm text-gray-400">
+                        <thead class="bg-white/5 text-gray-200 uppercase text-xs font-bold">
+                            <tr>
+                                <th class="p-4">Vehicle</th>
+                                <th class="p-4 hidden md:table-cell">Price</th>
+                                <th class="p-4 hidden md:table-cell">Status</th>
+                                <th class="p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cars-table-body">
+                            <!-- Injected JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 2. AUDIT VIEW -->
+            <section id="view-audit" class="hidden space-y-6">
+                <h2 class="text-2xl font-heading">Audit Logs</h2>
+                <div class="bg-red-900/10 border border-red-500/20 p-4 rounded-sm">
+                    <h3 class="text-[#E60002] font-bold text-sm mb-2"><i class="fas fa-trash-alt mr-2"></i> Recent Deletions (Last 14 Days)</h3>
+                    <div id="deletion-logs" class="space-y-2 text-xs text-gray-300">
+                        <!-- Injected JS -->
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. PROFILE VIEW -->
+            <section id="view-profile" class="hidden max-w-md mx-auto mt-10">
+                <div class="bg-[#111] p-8 rounded-sm border border-white/10">
+                    <h2 class="text-xl font-heading mb-6">Admin Profile</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs uppercase text-gray-500 mb-1">Email</label>
+                            <input type="text" id="profile-email" disabled class="w-full bg-black/50 border border-white/10 p-3 text-gray-500 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase text-gray-500 mb-1">Username (For Audits)</label>
+                            <input type="text" id="profile-username" class="w-full bg-black/50 border border-white/10 p-3 text-white focus:border-[#E60002] outline-none">
+                        </div>
+                        <button onclick="updateProfile()" class="w-full bg-white text-black font-bold py-3 hover:bg-gray-200">UPDATE PROFILE</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- EDIT/ADD MODAL (Full Screen Overlay) -->
+    <div id="editor-modal" class="fixed inset-0 bg-black z-40 hidden overflow-y-auto">
+        <div class="min-h-screen p-4 md:p-10 max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                <h2 class="text-2xl font-heading" id="modal-title">Add New Vehicle</h2>
+                <button onclick="closeEditor()" class="text-gray-400 hover:text-white"><i class="fas fa-times text-2xl"></i></button>
             </div>
-            
-            <form id="login-form" class="space-y-6" onsubmit="return false;">
-                <div>
-                    <label class="text-xs text-gray-400 uppercase font-bold tracking-wider">Email</label>
-                    <input type="email" id="email" required class="brand-input w-full p-3 mt-1 rounded text-sm" placeholder="admin@iconautomotive.com">
+
+            <form id="car-form" class="space-y-8 pb-20">
+                <input type="hidden" id="edit-id">
+                
+                <!-- Basic Info -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div><label class="label">Brand</label><input type="text" id="inp-brand" required class="input-field" placeholder="Toyota"></div>
+                    <div><label class="label">Model</label><input type="text" id="inp-model" required class="input-field" placeholder="Camry"></div>
+                    <div><label class="label">Year</label><input type="number" id="inp-year" required class="input-field" placeholder="2020"></div>
+                    <div><label class="label">Price (₦)</label><input type="number" id="inp-price" required class="input-field" placeholder="15000000"></div>
                 </div>
-                <div>
-                    <label class="text-xs text-gray-400 uppercase font-bold tracking-wider">Password</label>
-                    <input type="password" id="password" required class="brand-input w-full p-3 mt-1 rounded text-sm" placeholder="••••••••">
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="label">Condition</label>
+                        <select id="inp-usage" class="input-field bg-[#111]">
+                            <option>Foreign Used</option>
+                            <option>Nigerian Used</option>
+                            <option>Brand New</option>
+                        </select>
+                    </div>
+                    <div><label class="label">Facelift Year (Optional)</label><input type="number" id="inp-facelift" class="input-field" placeholder="e.g. 2022"></div>
                 </div>
-                <button type="submit" id="login-btn" class="w-full bg-[#E60002] hover:bg-red-700 text-white font-bold py-3 rounded transition duration-300 uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(230,0,2,0.3)]">
-                    Access Dashboard
-                </button>
-                <div id="login-error" class="text-red-500 text-center text-xs hidden font-bold bg-red-900/20 p-2 rounded border border-red-500/20"></div>
+
+                <div><label class="label">Location</label><input type="text" id="inp-location" required class="input-field" placeholder="Lagos"></div>
+                
+                <div>
+                    <label class="label">Description / Bio</label>
+                    <textarea id="inp-bio" rows="4" class="input-field" placeholder="Vehicle details..."></textarea>
+                </div>
+
+                <!-- Image Management -->
+                <div class="bg-[#111] p-6 border border-white/10 rounded-sm">
+                    <h3 class="font-bold mb-4">Images</h3>
+                    
+                    <!-- Existing Images -->
+                    <div id="image-preview-area" class="grid grid-cols-3 md:grid-cols-5 gap-4 mb-4"></div>
+                    
+                    <!-- Upload -->
+                    <label class="cursor-pointer bg-white/5 border border-dashed border-white/20 hover:border-[#E60002] p-8 rounded-sm flex flex-col items-center justify-center transition-colors">
+                        <i class="fas fa-cloud-upload-alt text-2xl mb-2 text-gray-400"></i>
+                        <span class="text-xs text-gray-500 uppercase tracking-widest">Click to Upload Images</span>
+                        <input type="file" id="inp-files" multiple accept="image/*" class="hidden" onchange="handleFileSelect(this)">
+                    </label>
+                    <p class="text-xs text-gray-600 mt-2 text-center" id="upload-status"></p>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="closeEditor()" class="flex-1 py-4 border border-white/10 text-gray-400 hover:text-white">CANCEL</button>
+                    <button type="submit" class="flex-1 py-4 bg-[#E60002] hover:bg-red-700 text-white font-bold tracking-widest">SAVE VEHICLE</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- =======================================================================
-         SECTION 2: MAIN DASHBOARD
-         ======================================================================= -->
-    <div id="app-interface" class="flex flex-1 hidden overflow-hidden">
-        
-        <!-- SIDEBAR -->
-        <aside class="w-64 bg-[#080808] border-r border-gray-900 flex flex-col z-20 shadow-xl">
-            <div class="p-6 border-b border-gray-900">
-                <h2 class="font-heading text-2xl tracking-wide">ICON<span class="text-[#E60002]">.</span></h2>
-            </div>
-            
-            <nav class="flex-1 py-6 space-y-1">
-                <button onclick="nav('inventory')" id="btn-inventory" class="nav-item w-full text-left px-6 py-4 text-gray-400 flex items-center gap-4 hover:pl-8 active">
-                    <i class="fa-solid fa-car-side text-lg"></i> 
-                    <span class="text-sm font-bold tracking-wide">INVENTORY</span>
-                </button>
-                <button onclick="nav('editor')" id="btn-editor" class="nav-item w-full text-left px-6 py-4 text-gray-400 flex items-center gap-4 hover:pl-8">
-                    <i class="fa-solid fa-plus-circle text-lg"></i> 
-                    <span class="text-sm font-bold tracking-wide">ADD VEHICLE</span>
-                </button>
-                <button onclick="nav('audit')" id="btn-audit" class="nav-item w-full text-left px-6 py-4 text-gray-400 flex items-center gap-4 hover:pl-8">
-                    <i class="fa-solid fa-list-check text-lg"></i> 
-                    <span class="text-sm font-bold tracking-wide">AUDIT LOGS</span>
-                </button>
-            </nav>
-
-            <div class="p-6 border-t border-gray-900 bg-[#0a0a0a]">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <div class="text-[10px] text-gray-500 uppercase">Logged in as</div>
-                        <div id="user-email-display" class="text-xs font-bold text-white truncate w-32">...</div>
-                    </div>
-                </div>
-                <button onclick="logout()" class="w-full text-left text-xs text-red-500 hover:text-red-400 font-bold uppercase tracking-wider">
-                    <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Sign Out
-                </button>
-            </div>
-        </aside>
-
-        <!-- MAIN CONTENT -->
-        <main class="flex-1 bg-[#050505] relative overflow-hidden flex flex-col">
-            <!-- Mobile Header -->
-            <div class="md:hidden bg-black border-b border-gray-800 p-4 flex justify-between items-center">
-                <span class="font-heading text-lg">ICON ADMIN</span>
-                <button onclick="logout()" class="text-red-500"><i class="fa-solid fa-sign-out"></i></button>
-            </div>
-
-            <div class="flex-1 overflow-y-auto p-6 md:p-10 scroll-smooth">
-                
-                <!-- VIEW 1: INVENTORY TABLE -->
-                <div id="view-inventory" class="animate-fade-in max-w-7xl mx-auto">
-                    <div class="flex flex-col md:flex-row justify-between items-end md:items-center mb-8 gap-4">
-                        <div>
-                            <h2 class="text-3xl font-heading text-white">Vehicle Inventory</h2>
-                            <p class="text-gray-500 text-sm mt-1">Manage your showroom listings.</p>
-                        </div>
-                        <div class="flex gap-3 w-full md:w-auto">
-                            <input type="text" id="search-input" placeholder="Search Brand/Model..." class="brand-input px-4 py-2 rounded text-sm w-full md:w-64">
-                            <button onclick="nav('editor')" class="bg-[#E60002] hover:bg-red-700 text-white px-5 py-2 rounded font-bold text-sm whitespace-nowrap shadow-lg shadow-red-900/20">
-                                <i class="fa-solid fa-plus mr-2"></i> Add Car
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="glass-panel rounded-lg overflow-hidden">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-[#111] text-xs uppercase text-gray-500 font-bold tracking-wider">
-                                <tr>
-                                    <th class="p-4 border-b border-gray-800">Vehicle</th>
-                                    <th class="p-4 border-b border-gray-800">Price</th>
-                                    <th class="p-4 border-b border-gray-800 hidden md:table-cell">Status</th>
-                                    <th class="p-4 border-b border-gray-800 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inventory-list" class="divide-y divide-gray-800 text-sm">
-                                <!-- JS Populates This -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- VIEW 2: EDITOR (ADD/EDIT) -->
-                <div id="view-editor" class="hidden animate-fade-in max-w-4xl mx-auto pb-20">
-                    <div class="flex items-center gap-4 mb-8">
-                        <button onclick="nav('inventory')" class="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center hover:bg-gray-800 transition">
-                            <i class="fa-solid fa-arrow-left text-gray-400"></i>
-                        </button>
-                        <div>
-                            <h2 id="editor-title" class="text-3xl font-heading text-white">Add New Vehicle</h2>
-                            <p class="text-gray-500 text-sm">Fill in the details below. All fields marked * are required.</p>
-                        </div>
-                    </div>
-
-                    <form id="car-form" class="space-y-8">
-                        <input type="hidden" id="edit-id"> <!-- Stores ID if editing -->
-
-                        <!-- Section: Basic Info -->
-                        <div class="glass-panel p-6 rounded-lg">
-                            <h3 class="text-lg font-bold text-white mb-4 border-b border-gray-800 pb-2">Basic Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-2 uppercase">Brand *</label>
-                                    <input type="text" id="brand" required class="brand-input w-full p-3 rounded" placeholder="e.g. Mercedes-Benz">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-2 uppercase">Model *</label>
-                                    <input type="text" id="model" required class="brand-input w-full p-3 rounded" placeholder="e.g. G63 AMG">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-2 uppercase">Year *</label>
-                                    <input type="number" id="year" required class="brand-input w-full p-3 rounded" placeholder="2024">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-2 uppercase">Price (₦) *</label>
-                                    <input type="number" id="price" required class="brand-input w-full p-3 rounded" placeholder="350000000">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section: Details -->
-                        <div class="glass-panel p-6 rounded-lg">
-                            <h3 class="text-lg font-bold text-white mb-4 border-b border-gray-800 pb-2">Details & Location</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-2 uppercase">Condition / Usage *</label>
-                                    <select id="usage" class="brand-input w-full p-3 rounded">
-                                        <option value="Foreign Used">Foreign Used</option>
-                                        <option value="Nigerian Used">Nigerian Used</option>
-                                        <option value="Brand New">Brand New</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-2 uppercase">Location *</label>
-                                    <input type="text" id="location" required class="brand-input w-full p-3 rounded" placeholder="e.g. Abuja Showroom">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-xs text-gray-500 mb-2 uppercase">Description / Bio</label>
-                                    <textarea id="bio" rows="4" class="brand-input w-full p-3 rounded" placeholder="List key features, history, and modifications..."></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section: Images (THE BIG UPGRADE) -->
-                        <div class="glass-panel p-6 rounded-lg border border-gray-800">
-                            <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-                                <h3 class="text-lg font-bold text-white">Gallery</h3>
-                                <span class="text-xs text-gray-500">Supported: JPG, PNG</span>
-                            </div>
-                            
-                            <!-- Custom File Button -->
-                            <div class="relative group">
-                                <input type="file" id="image-upload" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" onchange="handleFileSelect(this)">
-                                <div class="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center group-hover:border-red-500 transition-colors bg-[#0a0a0a]">
-                                    <i class="fa-solid fa-cloud-upload-alt text-3xl text-gray-500 mb-3 group-hover:text-red-500"></i>
-                                    <p class="text-sm text-gray-300 font-bold">Click to Select Images</p>
-                                    <p class="text-xs text-gray-600 mt-1">Select multiple files at once (Max 40)</p>
-                                </div>
-                            </div>
-
-                            <!-- Preview Area -->
-                            <div id="image-preview-area" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                                <!-- JS injects thumbnails here -->
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="flex items-center gap-4 pt-4">
-                            <button type="submit" id="save-btn" class="flex-1 bg-[#E60002] hover:bg-red-700 text-white font-bold py-4 rounded transition shadow-lg shadow-red-900/20 uppercase tracking-widest text-sm">
-                                Save Vehicle
-                            </button>
-                            <button type="button" onclick="resetForm()" class="px-8 py-4 border border-gray-700 hover:bg-gray-800 text-gray-400 font-bold rounded uppercase text-sm">
-                                Reset
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- VIEW 3: AUDIT LOGS -->
-                <div id="view-audit" class="hidden animate-fade-in max-w-5xl mx-auto">
-                    <h2 class="text-3xl font-heading text-white mb-6">System Audit Logs</h2>
-                    <div class="glass-panel rounded-lg overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead class="bg-[#111] text-xs uppercase text-gray-500">
-                                <tr>
-                                    <th class="p-4 border-b border-gray-800">Time</th>
-                                    <th class="p-4 border-b border-gray-800">Action</th>
-                                    <th class="p-4 border-b border-gray-800">Admin</th>
-                                    <th class="p-4 border-b border-gray-800">Details</th>
-                                </tr>
-                            </thead>
-                            <tbody id="audit-list" class="divide-y divide-gray-800 text-sm">
-                                <!-- JS Populates -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-        </main>
-    </div>
-
-    <!-- NOTIFICATION TOAST -->
-    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 transition-transform duration-300">
-        <div class="bg-[#151515] border-l-4 border-red-500 text-white px-6 py-4 rounded shadow-2xl flex items-center gap-4">
-            <i id="toast-icon" class="fa-solid fa-check-circle text-green-500"></i>
-            <div>
-                <h4 id="toast-title" class="font-bold text-sm">Success</h4>
-                <p id="toast-msg" class="text-xs text-gray-400">Operation completed.</p>
+    <!-- Confirm Delete Modal -->
+    <div id="delete-modal" class="fixed inset-0 bg-black/90 z-[60] hidden flex items-center justify-center">
+        <div class="bg-[#111] p-8 rounded-sm border border-white/10 max-w-sm text-center">
+            <i class="fas fa-exclamation-triangle text-[#E60002] text-3xl mb-4"></i>
+            <h3 class="text-xl font-bold mb-2">Delete Listing?</h3>
+            <p class="text-gray-400 text-sm mb-6">This action cannot be undone. The audit log will record this deletion.</p>
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('delete-modal').classList.add('hidden')" class="flex-1 py-2 border border-white/10 text-sm">CANCEL</button>
+                <button id="confirm-delete-btn" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold">DELETE</button>
             </div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
+    <style>
+        .label { display: block; font-size: 0.75rem; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+        .input-field { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 0.75rem; color: white; border-radius: 0.125rem; font-size: 0.875rem; }
+        .input-field:focus { outline: none; border-color: #E60002; }
+    </style>
+
     <script>
-        // --- 1. CONFIGURATION ---
-        // REPLACE THESE KEYS WITH YOUR ACTUAL SUPABASE PROJECT DETAILS
-        const SB_URL = 'https://dpzvjsfgilnuzedghfww.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwenZqc2ZnaWxudXplZGdoZnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MjUyMTcsImV4cCI6MjA4MzEwMTIxN30.KjnG8hVXcWshG1XIDOrWEnM1ITiLT2Nzu3b1Z1ix-8Q';
-        
-        // Initialize Supabase
-        let sb;
-        try {
-            sb = window.supabase.createClient(SB_URL, SB_KEY);
-        } catch(e) { console.error("Supabase Init Failed", e); }
+        const SUPABASE_URL = 'https://dpzvjsfgilnuzedghfww.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwenZqc2ZnaWxudXplZGdoZnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MjUyMTcsImV4cCI6MjA4MzEwMTIxN30.KjnG8hVXcWshG1XIDOrWEnM1ITiLT2Nzu3b1Z1ix-8Q';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // State
         let currentUser = null;
-        let currentFiles = []; // Stores files selected for upload
-        let existingImages = []; // Stores URLs of already uploaded images (for editing)
+        let currentImages = []; // Stores URLs for the car being edited
+        let deleteTargetId = null;
 
-        // --- 2. AUTHENTICATION ---
-        window.addEventListener('load', async () => {
-            const { data: { session } } = await sb.auth.getSession();
-            if (session) verifyAdmin(session.user);
-        });
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('login-btn');
-            const err = document.getElementById('login-error');
-            
-            btn.innerHTML = '<span class="loader w-4 h-4 border-white"></span>';
-            err.classList.add('hidden');
-
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-
-            const { data, error } = await sb.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                btn.innerText = "ACCESS DASHBOARD";
-                err.innerText = error.message;
-                err.classList.remove('hidden');
-            } else {
-                verifyAdmin(data.user);
-            }
-        });
-
-        async function verifyAdmin(user) {
-            // Check whitelist table
-            const { data, error } = await sb.from('allowed_admins').select('email').eq('email', user.email).single();
-            
-            if (error || !data) {
-                await sb.auth.signOut();
-                document.getElementById('login-error').innerText = "Access Denied: You are not an authorized admin.";
-                document.getElementById('login-error').classList.remove('hidden');
-                document.getElementById('login-btn').innerText = "ACCESS DASHBOARD";
+        // --- INIT & AUTH ---
+        async function init() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'admin-login.html';
                 return;
             }
+            currentUser = session.user;
+            
+            // Fetch Profile
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+            if (profile) {
+                document.getElementById('admin-name').innerText = profile.username || profile.email;
+                document.getElementById('profile-email').value = profile.email;
+                document.getElementById('profile-username').value = profile.username || '';
+            }
 
-            // Success
-            currentUser = user;
-            document.getElementById('login-overlay').classList.add('hidden');
-            document.getElementById('app-interface').classList.remove('hidden');
-            document.getElementById('user-email-display').innerText = user.email;
-            nav('inventory'); // Load default view
+            document.getElementById('auth-loading').classList.add('hidden');
+            loadInventory();
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tab) {
+            // Hide all sections
+            ['view-inventory', 'view-audit', 'view-profile'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            // Show target
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            
+            // Update buttons (Desk & Mob)
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('nav-active', 'text-white', 'bg-white/5');
+                b.classList.add('text-gray-400');
+            });
+            document.getElementById(`tab-mob-${tab}`).classList.add('nav-active', 'text-white');
+            document.getElementById(`tab-desk-${tab}`).classList.add('nav-active', 'bg-white/5', 'text-white');
+
+            if(tab === 'audit') loadAuditLogs();
         }
 
         async function logout() {
-            await sb.auth.signOut();
-            window.location.reload();
+            await supabase.auth.signOut();
+            window.location.href = 'admin-login.html';
         }
 
-        // --- 3. NAVIGATION ---
-        function nav(view) {
-            // Sidebar active state
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const btn = document.getElementById(`btn-${view}`);
-            if(btn) btn.classList.add('active');
+        // --- INVENTORY LOGIC ---
+        async function loadInventory() {
+            const tbody = document.getElementById('cars-table-body');
+            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">Loading...</td></tr>';
 
-            // View visibility
-            ['inventory', 'editor', 'audit'].forEach(v => {
-                document.getElementById(`view-${v}`).classList.add('hidden');
-            });
-            document.getElementById(`view-${view}`).classList.remove('hidden');
-
-            // Data Fetching
-            if (view === 'inventory') fetchInventory();
-            if (view === 'audit') fetchAuditLogs();
-            if (view === 'editor') {
-                // If we navigated manually, reset the form (unless we clicked 'edit' from table)
-                if(!document.getElementById('edit-id').value) resetForm();
-            }
-        }
-
-        // --- 4. IMAGE HANDLING (PREMIUM FEATURE) ---
-        function handleFileSelect(input) {
-            const files = Array.from(input.files);
-            if (files.length === 0) return;
-
-            // Add to our state array
-            currentFiles = [...currentFiles, ...files];
-            renderImagePreviews();
-        }
-
-        function renderImagePreviews() {
-            const container = document.getElementById('image-preview-area');
-            container.innerHTML = '';
-
-            // 1. Render Existing Images (from Database)
-            existingImages.forEach((url, index) => {
-                const div = document.createElement('div');
-                div.className = 'relative aspect-video bg-gray-900 rounded overflow-hidden border border-gray-700 group';
-                div.innerHTML = `
-                    <img src="${url}" class="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition">
-                    <button type="button" onclick="removeExistingImage(${index})" class="absolute top-2 right-2 bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-500 shadow-lg">
-                        <i class="fa-solid fa-times text-xs"></i>
-                    </button>
-                    <div class="absolute bottom-0 left-0 bg-black/50 text-[10px] text-white px-2 py-1">Saved</div>
-                `;
-                container.appendChild(div);
-            });
-
-            // 2. Render New Files (Pending Upload)
-            currentFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const div = document.createElement('div');
-                    div.className = 'relative aspect-video bg-gray-900 rounded overflow-hidden border border-red-900/50 group';
-                    div.innerHTML = `
-                        <img src="${e.target.result}" class="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition">
-                        <button type="button" onclick="removeNewFile(${index})" class="absolute top-2 right-2 bg-gray-600 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-500 shadow-lg">
-                            <i class="fa-solid fa-times text-xs"></i>
-                        </button>
-                        <div class="absolute bottom-0 left-0 bg-red-900/80 text-[10px] text-white px-2 py-1">New</div>
-                    `;
-                    container.appendChild(div);
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function removeNewFile(index) {
-            currentFiles.splice(index, 1);
-            renderImagePreviews();
-        }
-
-        function removeExistingImage(index) {
-            if(!confirm("Remove this saved image? It will be deleted on Save.")) return;
-            existingImages.splice(index, 1);
-            renderImagePreviews();
-        }
-
-        // --- 5. DATA OPERATIONS (CRUD) ---
-        
-        // --- FETCH INVENTORY
-        async function fetchInventory() {
-            const tbody = document.getElementById('inventory-list');
-            tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-500"><span class="loader"></span> Loading...</td></tr>';
+            const { data, error } = await supabase.from('cars').select('*').order('created_at', { ascending: false });
             
-            const { data: cars, error } = await sb.from('cars').select('*').order('created_at', { ascending: false });
-
             if (error) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">Error: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-red-500 p-4">Error: ${error.message}</td></tr>`;
                 return;
             }
 
-            if (cars.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500">No cars found. Click "Add Vehicle" to create one.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = cars.map(car => `
-                <tr class="hover:bg-[#151515] transition border-b border-gray-800/50 group">
+            tbody.innerHTML = '';
+            data.forEach(car => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-white/5 table-row-hover transition-colors';
+                row.innerHTML = `
                     <td class="p-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-16 h-12 bg-gray-800 rounded overflow-hidden flex-shrink-0">
-                                ${car.images && car.images[0] ? `<img src="${car.images[0]}" class="w-full h-full object-cover">` : '<div class="flex items-center justify-center h-full text-xs text-gray-600">No IMG</div>'}
-                            </div>
+                        <div class="flex items-center gap-3">
+                            <img src="${car.images?.[0] || 'https://placehold.co/100'}" class="w-12 h-12 object-cover rounded-sm bg-white/5">
                             <div>
-                                <div class="font-bold text-white">${car.year} ${car.brand}</div>
-                                <div class="text-xs text-gray-500">${car.model}</div>
+                                <div class="font-bold text-white">${car.brand} ${car.model}</div>
+                                <div class="text-xs text-gray-500">${car.year} • ID: ${car.id.slice(0,6)}...</div>
                             </div>
                         </div>
                     </td>
-                    <td class="p-4 font-bold text-[#E60002]">₦${parseInt(car.price).toLocaleString()}</td>
-                    <td class="p-4 hidden md:table-cell">
-                        <span class="px-2 py-1 bg-gray-800 text-[10px] uppercase rounded text-gray-400 border border-gray-700">${car.usage_state}</span>
-                    </td>
+                    <td class="p-4 hidden md:table-cell text-white">₦${car.price.toLocaleString()}</td>
+                    <td class="p-4 hidden md:table-cell"><span class="bg-white/10 text-xs px-2 py-1 rounded-sm">${car.usage_state}</span></td>
                     <td class="p-4 text-right">
-                        <button onclick='loadCarForEdit(${JSON.stringify(car).replace(/'/g, "&#39;")})' class="text-gray-500 hover:text-white mr-3 transition"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteCar(${car.id}, '${car.brand} ${car.model}')" class="text-gray-500 hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick='editCar(${JSON.stringify(car).replace(/'/g, "&#39;")})' class="text-blue-400 hover:text-white mx-2"><i class="fas fa-edit"></i></button>
+                        <button onclick="askDelete('${car.id}')" class="text-red-500 hover:text-white mx-2"><i class="fas fa-trash"></i></button>
                     </td>
-                </tr>
-            `).join('');
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Simple Search
+            document.getElementById('search-input').onkeyup = function(e) {
+                const term = e.target.value.toLowerCase();
+                Array.from(tbody.children).forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(term) ? '' : 'none';
+                });
+            }
         }
 
-        // --- SAVE CAR (CREATE/UPDATE)
+        // --- EDITOR LOGIC ---
+        function openEditor() {
+            document.getElementById('editor-modal').classList.remove('hidden');
+            document.getElementById('modal-title').innerText = 'Add New Vehicle';
+            document.getElementById('car-form').reset();
+            document.getElementById('edit-id').value = '';
+            currentImages = [];
+            renderImagePreview();
+        }
+
+        function closeEditor() {
+            document.getElementById('editor-modal').classList.add('hidden');
+        }
+
+        function editCar(car) {
+            openEditor();
+            document.getElementById('modal-title').innerText = 'Edit Vehicle';
+            document.getElementById('edit-id').value = car.id;
+            
+            // Populate Fields
+            document.getElementById('inp-brand').value = car.brand;
+            document.getElementById('inp-model').value = car.model;
+            document.getElementById('inp-year').value = car.year;
+            document.getElementById('inp-price').value = car.price;
+            document.getElementById('inp-usage').value = car.usage_state;
+            document.getElementById('inp-facelift').value = car.facelift_year || '';
+            document.getElementById('inp-location').value = car.location;
+            document.getElementById('inp-bio').value = car.bio || '';
+            
+            currentImages = car.images || [];
+            renderImagePreview();
+        }
+
+        // Image Handling
+        function renderImagePreview() {
+            const area = document.getElementById('image-preview-area');
+            area.innerHTML = '';
+            currentImages.forEach((url, idx) => {
+                const div = document.createElement('div');
+                div.className = 'relative aspect-square group';
+                div.innerHTML = `
+                    <img src="${url}" class="w-full h-full object-cover rounded-sm border border-white/10">
+                    <button type="button" onclick="removeImage(${idx})" class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                area.appendChild(div);
+            });
+        }
+
+        function removeImage(index) {
+            currentImages.splice(index, 1);
+            renderImagePreview();
+        }
+
+        async function handleFileSelect(input) {
+            const files = input.files;
+            if (files.length === 0) return;
+
+            const status = document.getElementById('upload-status');
+            status.innerText = `Uploading ${files.length} images...`;
+            
+            for (let file of files) {
+                const fileName = `${Date.now()}-${Math.floor(Math.random()*1000)}`;
+                const { data, error } = await supabase.storage.from('car-images').upload(fileName, file);
+                
+                if (error) {
+                    console.error(error);
+                    alert(`Upload failed: ${error.message}`);
+                } else {
+                    // Get Public URL
+                    const { data: { publicUrl } } = supabase.storage.from('car-images').getPublicUrl(fileName);
+                    currentImages.push(publicUrl);
+                }
+            }
+            status.innerText = 'Upload complete.';
+            renderImagePreview();
+            input.value = ''; // Reset
+        }
+
+        // Save Form
         document.getElementById('car-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('save-btn');
-            const originalText = btn.innerHTML;
+            const id = document.getElementById('edit-id').value;
             
-            btn.innerHTML = '<span class="loader w-4 h-4 border-white mr-2"></span> PROCESSING IMAGES...';
-            btn.disabled = true;
+            const payload = {
+                brand: document.getElementById('inp-brand').value,
+                model: document.getElementById('inp-model').value,
+                year: parseInt(document.getElementById('inp-year').value),
+                price: parseFloat(document.getElementById('inp-price').value),
+                usage_state: document.getElementById('inp-usage').value,
+                facelift_year: document.getElementById('inp-facelift').value ? parseInt(document.getElementById('inp-facelift').value) : null,
+                location: document.getElementById('inp-location').value,
+                bio: document.getElementById('inp-bio').value,
+                images: currentImages,
+                updated_at: new Date()
+            };
 
-            try {
-                // 1. Upload NEW Images to Supabase Storage
-                let newImageUrls = [];
-                if (currentFiles.length > 0) {
-                    for (const file of currentFiles) {
-                        const fileExt = file.name.split('.').pop();
-                        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-                        
-                        const { data, error } = await sb.storage
-                            .from('car-images')
-                            .upload(fileName, file);
-                        
-                        if (error) throw error;
-                        
-                        // Get Public URL
-                        const { data: { publicUrl } } = sb.storage.from('car-images').getPublicUrl(fileName);
-                        newImageUrls.push(publicUrl);
-                    }
-                }
+            // If creating new, add created_by
+            if (!id) payload.created_by = currentUser.id;
+            payload.updated_by = currentUser.id;
 
-                // 2. Combine with Existing Images
-                const finalImages = [...existingImages, ...newImageUrls];
+            let error;
+            if (id) {
+                // Update
+                const res = await supabase.from('cars').update(payload).eq('id', id);
+                error = res.error;
+            } else {
+                // Insert
+                const res = await supabase.from('cars').insert([payload]);
+                error = res.error;
+            }
 
-                // 3. Prepare Database Object
-                const carId = document.getElementById('edit-id').value;
-                const carData = {
-                    brand: document.getElementById('brand').value,
-                    model: document.getElementById('model').value,
-                    year: parseInt(document.getElementById('year').value),
-                    price: parseFloat(document.getElementById('price').value),
-                    usage_state: document.getElementById('usage').value,
-                    location: document.getElementById('location').value,
-                    bio: document.getElementById('bio').value,
-                    images: finalImages,
-                    last_edited_by_email: currentUser.email
-                };
-
-                // 4. Save to Database
-                let error;
-                if (carId) {
-                    // Update
-                    const res = await sb.from('cars').update(carData).eq('id', carId);
-                    error = res.error;
-                    if (!error) await logAudit('EDIT', `Updated ${carData.year} ${carData.brand} ${carData.model}`);
-                } else {
-                    // Create
-                    carData.created_by_email = currentUser.email;
-                    const res = await sb.from('cars').insert([carData]);
-                    error = res.error;
-                    if (!error) await logAudit('CREATE', `Created ${carData.year} ${carData.brand} ${carData.model}`);
-                }
-
-                if (error) throw error;
-
-                // 5. Success
-                showToast('Success', 'Vehicle saved successfully.');
-                resetForm();
-                nav('inventory');
-
-            } catch (err) {
-                console.error(err);
-                alert("Error saving vehicle: " + err.message);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+            if (error) {
+                alert('Error saving: ' + error.message);
+            } else {
+                closeEditor();
+                loadInventory();
             }
         });
 
-        // --- EDIT PREP
-        window.loadCarForEdit = function(car) {
-            resetForm();
-            nav('editor');
-            
-            document.getElementById('editor-title').innerText = 'Edit Vehicle';
-            document.getElementById('edit-id').value = car.id;
-            
-            document.getElementById('brand').value = car.brand;
-            document.getElementById('model').value = car.model;
-            document.getElementById('year').value = car.year;
-            document.getElementById('price').value = car.price;
-            document.getElementById('usage').value = car.usage_state;
-            document.getElementById('location').value = car.location;
-            document.getElementById('bio').value = car.bio || '';
-            
-            existingImages = car.images || [];
-            renderImagePreviews();
-            
-            document.getElementById('save-btn').innerHTML = 'UPDATE VEHICLE';
+        // --- DELETE LOGIC ---
+        function askDelete(id) {
+            deleteTargetId = id;
+            document.getElementById('delete-modal').classList.remove('hidden');
         }
 
-        // --- DELETE
-        window.deleteCar = async function(id, name) {
-            if (!confirm(`Are you strictly sure you want to DELETE the ${name}? This cannot be undone.`)) return;
+        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+            if (!deleteTargetId) return;
+            // The trigger defined in SQL will handle the Audit Log entry automatically
+            const { error } = await supabase.from('cars').delete().eq('id', deleteTargetId);
             
-            const { error } = await sb.from('cars').delete().eq('id', id);
-            
-            if (error) {
-                alert(error.message);
-            } else {
-                await logAudit('DELETE', `Deleted ${name}`);
-                showToast('Deleted', `${name} removed from inventory.`);
-                fetchInventory();
+            if (error) alert('Delete failed: ' + error.message);
+            else {
+                document.getElementById('delete-modal').classList.add('hidden');
+                loadInventory();
             }
-        }
+        });
 
-        // --- AUDIT LOGS
-        async function logAudit(action, details) {
-            await sb.from('audit_logs').insert([{
-                action, details, admin_email: currentUser.email
-            }]);
-        }
+        // --- AUDIT LOGIC ---
+        async function loadAuditLogs() {
+            const container = document.getElementById('deletion-logs');
+            container.innerHTML = '<p class="animate-pulse">Loading logs...</p>';
 
-        async function fetchAuditLogs() {
-            const tbody = document.getElementById('audit-list');
-            tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-500">Loading Logs...</td></tr>';
-            
-            const { data, error } = await sb.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(50);
-            
-            if (error) return;
-            
-            tbody.innerHTML = data.map(log => {
-                const color = log.action === 'DELETE' ? 'text-red-500' : (log.action === 'CREATE' ? 'text-green-500' : 'text-blue-400');
+            // 14 Days ago
+            const date = new Date();
+            date.setDate(date.getDate() - 14);
+
+            const { data, error } = await supabase
+                .from('audit_logs')
+                .select('*')
+                .eq('action', 'DELETE')
+                .gt('timestamp', date.toISOString())
+                .order('timestamp', { ascending: false });
+
+            if (error) {
+                container.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+                return;
+            }
+
+            if (data.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 italic">No deletions in the last 14 days.</p>';
+                return;
+            }
+
+            container.innerHTML = data.map(log => {
+                const carData = log.old_data;
+                const time = new Date(log.timestamp).toLocaleDateString() + ' ' + new Date(log.timestamp).toLocaleTimeString();
                 return `
-                    <tr class="hover:bg-[#151515] border-b border-gray-800/50">
-                        <td class="p-4 text-gray-500 text-xs">${new Date(log.created_at).toLocaleString()}</td>
-                        <td class="p-4 ${color} font-bold text-xs tracking-wider">${log.action}</td>
-                        <td class="p-4 text-gray-400 text-xs">${log.admin_email}</td>
-                        <td class="p-4 text-gray-300 text-sm">${log.details}</td>
-                    </tr>
+                    <div class="border-b border-red-500/10 pb-2 mb-2">
+                        <div class="flex justify-between font-bold">
+                            <span>${carData.brand} ${carData.model} (${carData.year})</span>
+                            <span class="text-gray-500">${time}</span>
+                        </div>
+                        <div class="flex justify-between mt-1 text-gray-400">
+                            <span>Deleted by: <span class="text-white">${log.performed_by_username || 'Unknown'}</span></span>
+                            <span>ID: ${log.record_id}</span>
+                        </div>
+                    </div>
                 `;
             }).join('');
         }
 
-        // --- UTILS
-        function resetForm() {
-            document.getElementById('car-form').reset();
-            document.getElementById('edit-id').value = '';
-            document.getElementById('editor-title').innerText = 'Add New Vehicle';
-            document.getElementById('save-btn').innerHTML = 'SAVE VEHICLE';
-            currentFiles = [];
-            existingImages = [];
-            renderImagePreviews();
+        // --- PROFILE LOGIC ---
+        async function updateProfile() {
+            const newName = document.getElementById('profile-username').value;
+            if (newName.length < 3) return alert('Username must be 3+ characters');
+            
+            const { error } = await supabase.from('profiles').update({ username: newName }).eq('id', currentUser.id);
+            if (error) alert(error.message);
+            else alert('Profile updated');
         }
 
-        function showToast(title, msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-title').innerText = title;
-            document.getElementById('toast-msg').innerText = msg;
-            toast.classList.remove('translate-y-24');
-            setTimeout(() => toast.classList.add('translate-y-24'), 3000);
-        }
+        window.onload = init;
     </script>
 </body>
 </html>
