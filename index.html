@@ -6,7 +6,7 @@
     <title>Icon Automotive | Redefining Standards</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase SDK -->
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -28,191 +28,213 @@
         :root {
             --brand-red: #E60002;
             --brand-dark: #0a0a0a;
-            --brand-gray: #1a1a1a;
+            --brand-glass: rgba(20, 20, 20, 0.7);
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Montserrat', sans-serif; /* Fallback/Body font */
             background-color: var(--brand-dark);
             color: #ffffff;
             overflow-x: hidden;
         }
 
-        .font-heading { font-family: 'Orenburg', serif; }
-
-        /* Animation Classes */
-        .hero-anim { opacity: 0; transform: translateY(30px); }
-        .reveal-left { transform: translateX(-50px); opacity: 0; }
-        .reveal-right { transform: translateX(50px); opacity: 0; }
-
-        /* Glassmorphism */
-        .glass-nav {
-            background: rgba(10, 10, 10, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        h1, h2, h3, h4, h5, h6, .font-heading {
+            font-family: 'Orenburg', serif;
         }
 
-        /* Hover Effects */
-        .btn-primary {
-            background-color: var(--brand-red);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            position: relative;
-            overflow: hidden;
+        /* Custom Utilities */
+        .text-glow {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .red-glow {
+            box-shadow: 0 0 30px rgba(230, 0, 2, 0.2);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(230, 0, 2, 0.3);
+        .cinematic-gradient {
+            background: radial-gradient(circle at center, rgba(30,30,30,1) 0%, rgba(10,10,10,1) 100%);
         }
 
-        .car-card {
-            transition: all 0.5s ease;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .car-card:hover {
-            border-color: var(--brand-red);
-            transform: translateY(-10px);
-        }
-
-        /* Custom Loader */
+        /* Loader */
         #loader {
             position: fixed;
             inset: 0;
             background: #000;
-            z-index: 100;
+            z-index: 9999;
             display: flex;
             justify-content: center;
             align-items: center;
             transition: opacity 0.5s ease;
         }
     </style>
+    <!-- Google Fonts for Body -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
+<body class="antialiased">
 
-<body>
-
-    <!-- Loader -->
+    <!-- Preloader -->
     <div id="loader">
-        <div class="flex flex-col items-center">
-            <img src="logoblk.png" alt="Logo" class="w-20 mb-4 animate-pulse">
-            <div class="w-48 h-[2px] bg-gray-800 rounded-full overflow-hidden">
-                <div id="loader-bar" class="w-0 h-full bg-[#E60002] transition-all duration-1000"></div>
-            </div>
-        </div>
+        <div class="text-brand-red text-2xl animate-pulse font-heading tracking-widest">ICON AUTOMOTIVE</div>
     </div>
 
-    <!-- Navigation (Placeholder for external component) -->
-    <div id="nav-placeholder"></div>
+    <!-- Header Injection Point -->
+    <div id="header-container"></div>
 
-    <!-- Hero Section -->
-    <section class="relative h-screen flex items-center justify-center overflow-hidden">
-        <!-- Video/Image Background -->
+    <!-- HERO SECTION -->
+    <header class="relative h-screen w-full overflow-hidden flex items-center justify-center">
+        <!-- Background Image/Video Placeholder -->
         <div class="absolute inset-0 z-0">
-            <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-black z-10"></div>
-            <img src="https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&q=80&w=2070" 
-                 class="w-full h-full object-cover scale-110" alt="Hero Background">
+            <img src="https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2670&auto=format&fit=crop" 
+                 class="w-full h-full object-cover opacity-60 scale-110" id="hero-bg" alt="Luxury Car">
+            <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black"></div>
         </div>
 
-        <div class="container mx-auto px-6 relative z-20 text-center">
-            <p class="hero-anim text-[#E60002] font-bold tracking-[0.3em] mb-4 uppercase text-sm">Exclusivity. Precision. Power.</p>
-            <h1 class="hero-anim font-heading text-6xl md:text-8xl mb-8 tracking-tighter leading-none">
-                REDEFINING <br> <span class="text-white/90">STANDARDS</span>
+        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto mt-20">
+            <p class="text-sm md:text-lg tracking-[0.3em] uppercase text-gray-400 mb-4 opacity-0 hero-anim">REDEFINING LUXURY</p>
+            <h1 class="text-5xl md:text-7xl lg:text-9xl font-heading mb-6 leading-tight text-white opacity-0 hero-anim">
+                THINK <span class="text-[#E60002]">DIFFERENT</span>
             </h1>
-            <div class="hero-anim flex flex-col md:flex-row gap-4 justify-center">
-                <a href="catalog.html" class="btn-primary px-10 py-4 font-bold text-sm tracking-widest uppercase">Explore Inventory</a>
-                <a href="#about" class="bg-white/5 backdrop-blur-md border border-white/10 px-10 py-4 font-bold text-sm tracking-widest uppercase hover:bg-white/10 transition-all">Our Story</a>
+            <p class="text-gray-300 text-lg md:text-xl mb-10 font-light max-w-2xl mx-auto opacity-0 hero-anim">
+                Intelligent solutions for the modern automotive lifestyle.
+            </p>
+            <div class="flex flex-col md:flex-row gap-4 justify-center opacity-0 hero-anim">
+                <a href="catalog.html" class="px-8 py-4 bg-[#E60002] hover:bg-red-700 text-white font-bold tracking-wider transition-all duration-300 rounded-sm">
+                    VIEW INVENTORY
+                </a>
+                <a href="services.html" class="px-8 py-4 border border-white/30 hover:bg-white hover:text-black hover:border-white text-white font-bold tracking-wider transition-all duration-300 backdrop-blur-sm rounded-sm">
+                    OUR SERVICES
+                </a>
             </div>
         </div>
+    </header>
 
-        <!-- Scroll Indicator -->
-        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce">
-            <div class="w-[1px] h-12 bg-gradient-to-b from-[#E60002] to-transparent mx-auto"></div>
-        </div>
-    </section>
-
-    <!-- Featured Section -->
-    <section id="featured" class="py-24 bg-[#050505]">
-        <div class="container mx-auto px-6">
-            <div class="flex flex-col md:flex-row justify-between items-end mb-16">
-                <div class="gsap-fade-up">
-                    <h2 class="font-heading text-4xl mb-2">CURATED SELECTIONS</h2>
-                    <p class="text-gray-500 tracking-widest uppercase text-xs">The latest additions to our elite showroom</p>
-                </div>
-                <a href="catalog.html" class="gsap-fade-up text-sm font-bold border-b-2 border-[#E60002] pb-1 hover:text-[#E60002] transition-colors mt-6 md:mt-0">VIEW FULL CATALOG</a>
-            </div>
-
-            <!-- Car Grid -->
-            <div id="featured-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Data injected from Supabase -->
-            </div>
-        </div>
-    </section>
-
-    <!-- About Sneak Peak -->
-    <section id="about" class="py-24 relative overflow-hidden">
-        <div class="container mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+    <!-- MISSION STATEMENT -->
+    <section class="py-24 px-6 relative bg-black">
+        <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
             <div class="gsap-fade-up">
-                <span class="text-[#E60002] font-bold text-xs tracking-widest uppercase">Unmatched Excellence</span>
-                <h2 class="font-heading text-5xl mt-4 mb-8 leading-tight">WE DON'T JUST SELL CARS; <br> WE SOURCE DREAMS.</h2>
-                <p class="text-gray-400 mb-8 leading-relaxed">
-                    Based in the heart of Lagos, Icon Automotive has spent years perfecting the art of luxury vehicle acquisition. 
-                    Every car in our inventory undergoes a rigorous 150-point inspection before it reaches our clients.
+                <h2 class="text-4xl md:text-5xl font-heading mb-6 leading-snug">
+                    To revolutionise the <span class="text-gray-500 italic">culture</span> of the industry.
+                </h2>
+                <div class="w-20 h-1 bg-[#E60002] mb-8"></div>
+                <p class="text-gray-400 leading-relaxed text-lg mb-6">
+                    Icon Automotive isn't just a dealership. We are building the leading African auto brand by delivering verified vehicles with world-class service.
                 </p>
-                <div class="flex gap-12">
-                    <div>
-                        <div class="text-3xl font-heading text-[#E60002]">100%</div>
-                        <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Authenticity</div>
-                    </div>
-                    <div>
-                        <div class="text-3xl font-heading text-[#E60002]">500+</div>
-                        <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Deliveries</div>
-                    </div>
-                </div>
+                <a href="about.html" class="text-white border-b border-[#E60002] pb-1 hover:text-[#E60002] transition-colors">
+                    Read our story <i class="fas fa-arrow-right text-xs ml-2"></i>
+                </a>
             </div>
-            <div class="relative gsap-fade-up">
-                <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=2070" 
-                     class="rounded-sm shadow-2xl grayscale hover:grayscale-0 transition-all duration-700" alt="Showroom">
-                <div class="absolute -bottom-6 -right-6 w-32 h-32 border-r-2 border-b-2 border-[#E60002]"></div>
+            <div class="relative h-[500px] gsap-fade-up delay-100">
+                <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1966&auto=format&fit=crop" 
+                     class="w-full h-full object-cover" alt="Vision">
+                <div class="absolute -bottom-6 -left-6 w-full h-full border border-white/10 -z-10 hidden md:block"></div>
             </div>
         </div>
     </section>
 
-    <!-- Footer Placeholder -->
-    <div id="footer-placeholder"></div>
+    <!-- FEATURED CARS PREVIEW -->
+    <section class="py-24 bg-[#0F0F0F] relative overflow-hidden">
+        <!-- Decoration -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-[#E60002] opacity-5 blur-[100px] rounded-full"></div>
 
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-end mb-16">
+                <div>
+                    <h2 class="text-3xl md:text-5xl font-heading text-white">Latest Arrivals</h2>
+                </div>
+                <a href="catalog.html" class="hidden md:block text-sm tracking-widest hover:text-[#E60002] transition-colors">VIEW ALL</a>
+            </div>
+
+            <!-- Dynamic Container for 3 cars -->
+            <div id="featured-cars-container" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Content injected via JS -->
+            </div>
+
+            <div class="mt-12 text-center md:hidden">
+                 <a href="catalog.html" class="text-sm tracking-widest hover:text-[#E60002] transition-colors">VIEW ALL INVENTORY</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="py-32 relative flex items-center justify-center">
+        <div class="absolute inset-0">
+            <img src="https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover opacity-20" alt="Dark Interior">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+        </div>
+        
+        <div class="relative z-10 text-center max-w-2xl px-6">
+            <h2 class="text-4xl md:text-6xl font-heading mb-6">Selling your car?</h2>
+            <p class="text-gray-300 mb-8 text-lg">We handle the hassle. You get the value. Experience seamless fleet management and sales.</p>
+            <a href="services.html" class="inline-block px-8 py-3 border border-[#E60002] text-[#E60002] hover:bg-[#E60002] hover:text-white transition-all duration-300 font-bold tracking-wider">
+                EXPLORE SERVICES
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer Injection Point -->
+    <div id="footer-container"></div>
+
+    <!-- Main Logic Script -->
     <script>
         // --- 1. Supabase Setup ---
         const SUPABASE_URL = 'https://dpzvjsfgilnuzedghfww.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwenZqc2ZnaWxudXplZGdoZnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MjUyMTcsImV4cCI6MjA4MzEwMTIxN30.KjnG8hVXcWshG1XIDOrWEnM1ITiLT2Nzu3b1Z1ix-8Q';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // --- 2. Load Components ---
-        function loadComponents() {
-            fetch('nav.html').then(res => res.text()).then(data => document.getElementById('nav-placeholder').innerHTML = data);
-            fetch('footer.html').then(res => res.text()).then(data => document.getElementById('footer-placeholder').innerHTML = data);
+        const supabase = window.supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // --- 1. Load Header & Footer ---
+        async function loadComponents() {
+            try {
+                const headerRes = await fetch('header.html');
+                const footerRes = await fetch('footer.html');
+                if(headerRes.ok) {
+                      document.getElementById('header-container').innerHTML = await headerRes.text();
+                      initHeaderLogic(); // <--- ADD THIS LINE HERE
+                }
+                if(footerRes.ok) document.getElementById('footer-container').innerHTML = await footerRes.text();
+            } catch (e) {
+                console.warn("Local CORS restriction. Use a local server to see header/footer.");
+            }
         }
-
-        // --- 3. Load Featured Cars from Supabase ---
+        
+        // --- NEW: Header Logic Function ---
+        function initHeaderLogic() {
+            const btn = document.getElementById('mobile-menu-btn');
+            const menu = document.getElementById('mobile-menu');
+            
+            if (btn && menu) {
+                btn.onclick = function() {
+                    menu.classList.toggle('hidden');
+                    menu.classList.toggle('flex');
+                    
+                    // Icon Toggle
+                    const icon = btn.querySelector('i');
+                    if(menu.classList.contains('hidden')) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    } else {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    }
+                };
+            }
+        }
+        // --- 2. Fetch Featured Cars ---
         async function loadFeaturedCars() {
             const container = document.getElementById('featured-grid');
-            
+    
             try {
-                // Fetch top 3 latest cars from Supabase
-                const { data: cars, error } = await supabase
+                // Fetch 3 latest cars from Supabase
+                const { data: cars, error } = await supabaseClient
                     .from('cars')
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(3);
 
                 if (error) throw error;
+                if (!cars || cars.length === 0) return;
 
-                if (!cars || cars.length === 0) {
-                    container.innerHTML = `<p class="col-span-3 text-center text-gray-500 py-10">New inventory arriving soon...</p>`;
-                    return;
-                }
-
-                container.innerHTML = ""; // Clear loader
-                
+                container.innerHTML = ""; // Clear any static placeholder
+        
                 cars.forEach(car => {
                     const firstImage = car.images && car.images.length > 0 ? car.images[0] : 'placeholder.jpg';
                     const card = `
@@ -241,21 +263,17 @@
                     `;
                     container.innerHTML += card;
                 });
-
             } catch (error) {
-                console.error("Error loading cars from Supabase:", error);
-                container.innerHTML = `<p class="col-span-3 text-center text-red-500">Failed to load inventory.</p>`;
+                console.error("Supabase Error:", error);
             }
         }
 
-        // --- 4. Animations & Init ---
+        // --- 3. Animations & Init ---
         window.addEventListener('load', () => {
             loadComponents();
             loadFeaturedCars();
 
-            // Progress bar simulation
-            document.getElementById('loader-bar').style.width = '100%';
-
+            // Loader
             setTimeout(() => {
                 document.getElementById('loader').style.opacity = '0';
                 setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
@@ -278,7 +296,7 @@
                             y: 0, opacity: 1, duration: 1,
                             scrollTrigger: {
                                 trigger: element,
-                                start: "top 85%",
+                                start: "top 80%",
                             }
                         }
                     );
@@ -287,4 +305,8 @@
         });
     </script>
 </body>
+
 </html>
+
+
+
