@@ -67,6 +67,8 @@
         // --- CONFIGURATION ---
         const SUPABASE_URL = 'https://dpzvjsfgilnuzedghfww.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwenZqc2ZnaWxudXplZGdoZnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MjUyMTcsImV4cCI6MjA4MzEwMTIxN30.KjnG8hVXcWshG1XIDOrWEnM1ITiLT2Nzu3b1Z1ix-8Q';
+        
+        // Changed variable name from 'supabase' to 'supabaseClient' to avoid conflicts
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const form = document.getElementById('login-form');
@@ -75,7 +77,7 @@
 
         // Check if already logged in
         async function checkSession() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) window.location.href = 'admin.html';
         }
         checkSession();
@@ -89,7 +91,8 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            const { data, error } = await supabase.auth.signInWithPassword({
+            // Use 'supabaseClient' here
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: password,
             });
