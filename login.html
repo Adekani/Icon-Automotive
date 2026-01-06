@@ -76,7 +76,7 @@
         // Check if already logged in
         async function checkSession() {
             const { data: { session } } = await supabase.auth.getSession();
-            if (session) window.location.href = 'admin-dashboard.html';
+            if (session) window.location.href = 'admin.html';
         }
         checkSession();
 
@@ -100,7 +100,7 @@
                 btn.innerHTML = 'LOGIN';
                 btn.disabled = false;
             } else {
-                window.location.href = 'admin-dashboard.html';
+                window.location.href = 'admin.html';
             }
         });
     </script>
